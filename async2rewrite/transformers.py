@@ -244,6 +244,11 @@ class DiscordTransformer(ast.NodeTransformer):
                 event = call.func.attr.split('_')[2]
                 event = 'message' if event == 'message' else 'reaction_add'
                 call.func.attr = 'wait_for'
+                if call.args:
+                    timeout = call.args[0]
+                    call.args = []
+                    call.keywords.append(ast.keyword(arg='timeout', value=timeout))
+
                 call.args.insert(0, ast.Str(s=event))
                 for kw in list(call.keywords):
                     if kw.arg != 'check' and kw.arg != 'timeout':
