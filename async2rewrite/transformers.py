@@ -47,6 +47,8 @@ class CallTransforms:
             newcall.args = call.args[1:]
             newcall.keywords = call.keywords
 
+            newcall = ast.copy_location(newcall, call)
+
             return newcall
 
         return call
@@ -203,6 +205,9 @@ class ExprTransforms:
                 new_expr.value.value.ctx = ast.Load()
                 new_expr.value.attr = 'emojis'
                 new_expr.value.ctx = ast.Load()
+
+                new_expr = ast.copy_location(new_expr, expr)
+
                 return new_expr
         return expr
 

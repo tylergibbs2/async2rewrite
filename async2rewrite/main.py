@@ -1,10 +1,10 @@
 import re
 import astunparse
 
-from transformers import *
+from .transformers import *
 
 
-class async2rewrite:
+class Converter:
 
     def get_result(self, code):
         code = re.sub("""['\"](\d{17,18,19})['\"]""", self.snowflake_repl, code)  # str snowflakes to int snowflakes
@@ -30,9 +30,3 @@ class async2rewrite:
 
     def from_text(self, text):
         return self.get_result(text)
-
-file = async2rewrite().from_file('sample_code.py')
-text = async2rewrite().from_text('async def on_command_error(error, ctx): pass')
-
-print(text)
-print(file)
