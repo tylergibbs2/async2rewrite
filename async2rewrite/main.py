@@ -1,5 +1,6 @@
 import re
-import astunparse
+
+from . import astunparse
 
 from .transformers import *
 
