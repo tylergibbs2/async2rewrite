@@ -264,7 +264,7 @@ class DiscordTransformer(ast.NodeTransformer):
                     if isinstance(kw.value, ast.Attribute):
                         channel_type = kw.value.attr
                         call.keywords.remove(kw)
-                call.func.attr = f'create_{channel_type}_channel'
+                call.func.attr = 'create_{}_channel'.format(channel_type)
                 guild = call.args[0]
                 call.func.value = guild
         return call
