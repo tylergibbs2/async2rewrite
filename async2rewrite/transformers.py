@@ -133,9 +133,7 @@ class DiscordTransformer(ast.NodeTransformer):
             if call.func.attr == 'get_all_emojis':
                 new_expr = ast.Expr()
                 new_expr.value = ast.Attribute()
-                new_expr.value.value = ast.Name()
-                new_expr.value.value.id = call.func.value.id
-                new_expr.value.value.ctx = ast.Load()
+                new_expr.value.value = call.func.value
                 new_expr.value.attr = 'emojis'
                 new_expr.value.ctx = ast.Load()
 
@@ -160,12 +158,9 @@ class DiscordTransformer(ast.NodeTransformer):
     def to_messageable(call):
         if not isinstance(call.func, ast.Attribute):
             return call
-        if not isinstance(call.func.value, ast.Name):
-            return call
         if call.func.attr == 'say':
-            call.func.value.id = 'ctx'
+            call.func.value = ast.Name(id='ctx', ctx=ast.Load())
             call.func.attr = 'send'
-            return call
         elif call.func.attr == 'send_message':
             destination = call.args[0]
 
@@ -190,7 +185,7 @@ class DiscordTransformer(ast.NodeTransformer):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr in easy_stateful_list:
                 message = call.args[0].id
-                call.func.value.id = message
+                call.func.value = ast.Name(id=message, ctx=ast.Load())
                 call.args = call.args[1:]
         return call
 
@@ -198,8 +193,8 @@ class DiscordTransformer(ast.NodeTransformer):
     def easy_deletes(call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr in easy_deletes_list:
-                to_delete = call.args[0]
-                call.func.value.id = to_delete.id
+                to_delete = call.args[0].id
+                call.func.value = ast.Name(id=to_delete, ctx=ast.Load())
                 call.args = call.args[1:]
                 call.func.attr = 'delete'
         return call
@@ -208,8 +203,8 @@ class DiscordTransformer(ast.NodeTransformer):
     def easy_edits(call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr in easy_edits_list:
-                to_edit = call.args[0]
-                call.func.value.id = to_edit.id
+                to_edit = call.args[0].id
+                call.func.value = ast.Name(id=to_edit, ctx=ast.Load())
                 call.args = call.args[1:]
                 call.func.attr = 'edit'
         return call
@@ -218,8 +213,8 @@ class DiscordTransformer(ast.NodeTransformer):
     def stateful_change_nickname(call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'change_nickname':
-                member = call.args[0]
-                call.func.value.id = member.id
+                member = call.args[0].id
+                call.func.value = ast.Name(id=member, ctx=ast.Load())
                 call.func.attr = 'edit'
                 nick = call.args[1]
                 call.args = []
@@ -230,8 +225,8 @@ class DiscordTransformer(ast.NodeTransformer):
     def stateful_pins_from(call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'pins_from':
-                dest = call.args[0]
-                call.func.value.id = dest.id
+                dest = call.args[0].id
+                call.func.value = ast.Name(id=dest, ctx=ast.Load())
                 call.func.attr = 'pins'
                 call.args = []
         return call
@@ -240,8 +235,8 @@ class DiscordTransformer(ast.NodeTransformer):
     def stateful_edit_role(call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'edit_role':
-                to_edit = call.args[1]
-                call.func.value.id = to_edit.id
+                to_edit = call.args[1].id
+                call.func.value = ast.Name(id=to_edit, ctx=ast.Load())
                 call.args = call.args[2:]
                 call.func.attr = 'edit'
         return call
@@ -256,7 +251,7 @@ class DiscordTransformer(ast.NodeTransformer):
                         call.keywords.remove(kw)
                 call.func.attr = f'create_{channel_type}_channel'
                 guild = call.args[0].attr
-                call.func.value.id = guild
+                call.func.value = ast.Name(id=guild, ctx=ast.Load())
         return call
 
     @staticmethod
@@ -264,8 +259,8 @@ class DiscordTransformer(ast.NodeTransformer):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'edit_message':
                 call.func.attr = 'edit'
-                message = call.args[0]
-                call.func.value.id = message.id
+                message = call.args[0].id
+                call.func.value = ast.Name(id=message, ctx=ast.Load())
                 content = call.args[1]
                 call.args = call.args[2:]
                 call.keywords.append(ast.keyword(arg='content', value=content))
@@ -276,8 +271,8 @@ class DiscordTransformer(ast.NodeTransformer):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'edit_channel_permissions':
                 call.func.attr = 'set_permissions'
-                channel = call.args[0]
-                call.func.value.id = channel.id
+                channel = call.args[0].id
+                call.func.value = ast.Name(id=channel, ctx=ast.Load())
                 overwrite = call.args[2]
                 call.args = [call.args[1]]
                 call.keywords.append(ast.keyword(arg='overwrite', value=overwrite))
@@ -288,7 +283,7 @@ class DiscordTransformer(ast.NodeTransformer):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'leave_guild':
                 server = call.args[0].id
-                call.func.value.id = server
+                call.func.value = ast.Name(id=server, ctx=ast.Load())
                 call.func.attr = 'leave'
                 call.args = []
         return call
@@ -298,12 +293,12 @@ class DiscordTransformer(ast.NodeTransformer):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'pin_message':
                 message = call.args[0].id
-                call.func.value.id = message
+                call.func.value = ast.Name(id=message, ctx=ast.Load())
                 call.func.attr = 'pin'
                 call.args = []
             elif call.func.attr == 'unpin_message':
                 message = call.args[0].id
-                call.func.value.id = message
+                call.func.value = ast.Name(id=message, ctx=ast.Load())
                 call.func.attr = 'unpin'
                 call.args = []
         return call
@@ -312,8 +307,8 @@ class DiscordTransformer(ast.NodeTransformer):
     def stateful_get_bans(call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'get_bans':
-                guild = call.args[0]
-                call.func.value.id = guild.id
+                guild = call.args[0].id
+                call.func.value = ast.Name(id=guild, ctx=ast.Load())
                 call.func.attr = 'bans'
                 call.args = []
         return call
