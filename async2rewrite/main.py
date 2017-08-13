@@ -4,29 +4,37 @@ import astunparse
 from .transformers import *
 
 
-class Converter:
+def get_result(code, **kwargs):
 
-    def get_result(self, code):
-        code = re.sub("""['\"](\d{17,18,19})['\"]""", self.snowflake_repl, code)  # str snowflakes to int snowflakes
+    remove_parens = kwargs.pop('remove_parens', False)
 
-        expr_ast = ast.parse(code)
-        new_ast = DiscordTransformer().generic_visit(expr_ast)
-
-        unparsed = astunparse.unparse(new_ast)
-
-        unparsed = unparsed.replace('ctx.message.guild', 'ctx.guild').replace('ctx.message.author', 'ctx.author')
-        unparsed = unparsed.replace('ctx.message.channel', 'ctx.channel')
-
-        return unparsed
-
-    @staticmethod
     def snowflake_repl(match):
         return str(int(match.group(1)))
 
-    def from_file(self, file_path):
-        with open(file_path, 'r') as f:
-            code = f.read()
-            return self.get_result(code)
+    code = re.sub("""['\"](\d{17,18,19})['\"]""", snowflake_repl, code)  # str snowflakes to int snowflakes
 
-    def from_text(self, text):
-        return self.get_result(text)
+    expr_ast = ast.parse(code)
+    new_ast = DiscordTransformer().generic_visit(expr_ast)
+
+    unparsed = astunparse.unparse(new_ast)
+
+    unparsed = unparsed.replace('ctx.message.guild', 'ctx.guild').replace('ctx.message.author', 'ctx.author')
+    unparsed = unparsed.replace('ctx.message.channel', 'ctx.channel')
+
+    if remove_parens:
+        def parens_repl(match):
+            return match.group(1)
+
+        unparsed = re.sub("""(?<=\s)\((.+)\)(?=[\s:])""", parens_repl, unparsed) # this can cause some issues
+
+    return unparsed
+
+
+def from_file(file_path, **kwargs):
+    with open(file_path, 'r') as f:
+        code = f.read()
+        return get_result(code, **kwargs)
+
+
+def from_text(text, **kwargs):
+    return get_result(text, **kwargs)
