@@ -30,4 +30,5 @@ setup(
   download_url='https://github.com/TheTrain2000/async2rewrite/archive/{}.tar.gz'.format(version),
   keywords=['discord', 'discordpy', 'ast'],
   classifiers=[],
+  dependency_links=['https://github.com/nvbn/py-backwards-astunparse/master'],
 )
