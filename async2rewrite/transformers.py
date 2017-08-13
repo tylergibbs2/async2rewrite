@@ -46,6 +46,7 @@ class DiscordTransformer(ast.NodeTransformer):
         node = self.stateful_pin_message(node)
         node = self.stateful_get_bans(node)
         node = self.stateful_pins_from(node)
+        node = self.stateful_send_typing(node)
 
         return node
 
@@ -103,6 +104,10 @@ class DiscordTransformer(ast.NodeTransformer):
 
     @staticmethod
     def ensure_ctx_var(coro):
+
+        d_list = [d.attr for d in coro.decorator_list]
+        if 'command' not in d_list:
+            return coro
 
         coro_args = [arg.arg for arg in coro.args.args]
 
@@ -239,6 +244,16 @@ class DiscordTransformer(ast.NodeTransformer):
                 call.func.value = to_edit
                 call.args = call.args[2:]
                 call.func.attr = 'edit'
+        return call
+
+    @staticmethod
+    def stateful_send_typing(call):
+        if isinstance(call.func, ast.Attribute):
+            if call.func.attr == 'send_typing':
+                dest = call.args[0]
+                call.func.value = dest
+                call.args = call.args[1:]
+                call.func.attr = 'trigger_typing'
         return call
 
     @staticmethod
