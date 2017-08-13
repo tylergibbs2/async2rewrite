@@ -26,6 +26,7 @@ class DiscordTransformer(ast.NodeTransformer):
         self.generic_visit(node)
 
         node = self.stateful_get_all_emojis(node)
+        node = self.attr_to_meth(node)
 
         return node
 
@@ -146,6 +147,19 @@ class DiscordTransformer(ast.NodeTransformer):
                 new_expr = ast.copy_location(new_expr, expr)
 
                 return new_expr
+        return expr
+
+    @staticmethod
+    def attr_to_meth(expr):
+        if isinstance(expr.value, ast.Attribute):
+            if expr.value.attr in ['is_ready', 'is_default', 'is_closed']:
+                call = ast.Call()
+                call.args = []
+                call.keywords = []
+                call.func = expr.value
+                expr.value = call
+        return expr
+
         return expr
 
     @staticmethod
