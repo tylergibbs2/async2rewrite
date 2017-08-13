@@ -50,6 +50,7 @@ class DiscordTransformer(ast.NodeTransformer):
         node = self.stateful_send_typing(node)
         node = self.stateful_wait_for(node)
         node = self.to_tuple_to_to_rgb(node)
+        node = self.channel_history(node)
 
         return node
 
@@ -84,6 +85,7 @@ class DiscordTransformer(ast.NodeTransformer):
         node = self.ext_event_changes(node)
         node = self.ensure_ctx_var(node)
         node = self.remove_passcontext(node)
+        node = self.event_changes(node)
 
         node.name = node.name.replace('server', 'guild').replace('Server', 'Guild')
 
@@ -103,6 +105,16 @@ class DiscordTransformer(ast.NodeTransformer):
             coro.args.args.reverse()
             return coro
 
+        return coro
+
+    @staticmethod
+    def event_changes(coro):
+        if coro.name == 'on_voice_state_update':
+            coro.args.args.insert(0, ast.arg(arg='member', annotation=None))
+        elif coro.name in ['on_guild_emojis_update', 'on_member_ban']:
+            coro.args.args.insert(0, ast.arg(arg='guild', annotation=None))
+        elif coro.name in ['on_channel_delete', 'on_channel_create', 'on_channel_update']:
+            coro.name = coro.name.replace('on_channel', 'on_guild_channel')
         return coro
 
     @staticmethod
@@ -233,6 +245,20 @@ class DiscordTransformer(ast.NodeTransformer):
                 call.func.value = to_edit
                 call.args = call.args[1:]
                 call.func.attr = 'edit'
+        return call
+
+    @staticmethod
+    def channel_history(call):
+        if isinstance(call.func, ast.Attribute):
+            if call.func.attr == 'logs_from':
+                dest = call.args[0]
+                call.args = call.args[1:]
+                if call.args:
+                    limit = call.args[0]
+                    call.keywords.append(ast.keyword(arg='limit', value=limit))
+                    call.args = []
+                call.func.value = dest
+                call.func.attr = 'history'
         return call
 
     @staticmethod
