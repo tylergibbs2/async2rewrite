@@ -47,6 +47,7 @@ class DiscordTransformer(ast.NodeTransformer):
         node = self.stateful_get_bans(node)
         node = self.stateful_pins_from(node)
         node = self.stateful_send_typing(node)
+        node = self.stateful_wait_for(node)
 
         return node
 
@@ -105,7 +106,7 @@ class DiscordTransformer(ast.NodeTransformer):
     @staticmethod
     def ensure_ctx_var(coro):
 
-        d_list = [d.attr for d in coro.decorator_list]
+        d_list = [d.attr for d in coro.decorator_list if isinstance(d, ast.Attribute)]
         if 'command' not in d_list:
             return coro
 
@@ -234,6 +235,19 @@ class DiscordTransformer(ast.NodeTransformer):
                 call.func.value = dest
                 call.func.attr = 'pins'
                 call.args = []
+        return call
+
+    @staticmethod
+    def stateful_wait_for(call):
+        if isinstance(call.func, ast.Attribute):
+            if call.func.attr in ['wait_for_message', 'wait_for_reaction']:
+                event = call.func.attr.split('_')[2]
+                event = 'message' if event == 'message' else 'reaction_add'
+                call.func.attr = 'wait_for'
+                call.args.insert(0, ast.Str(s=event))
+                for kw in list(call.keywords):
+                    if kw.arg != 'check' and kw.arg != 'timeout':
+                        call.keywords.remove(kw)
         return call
 
     @staticmethod
