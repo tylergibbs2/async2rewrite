@@ -49,6 +49,7 @@ class DiscordTransformer(ast.NodeTransformer):
         node = self.stateful_pins_from(node)
         node = self.stateful_send_typing(node)
         node = self.stateful_wait_for(node)
+        node = self.to_tuple_to_to_rgb(node)
 
         return node
 
@@ -277,6 +278,14 @@ class DiscordTransformer(ast.NodeTransformer):
                 call.func.value = to_edit
                 call.args = call.args[2:]
                 call.func.attr = 'edit'
+        return call
+
+    @staticmethod
+    def to_tuple_to_to_rgb(call):
+        if isinstance(call.func, ast.Attribute):
+            if call.func.attr == 'to_tuple':
+                call.func.attr = 'to_rgb'
+
         return call
 
     @staticmethod
