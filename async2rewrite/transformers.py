@@ -159,7 +159,6 @@ class DiscordTransformer(ast.NodeTransformer):
                 call.keywords = []
                 call.func = expr.value
                 expr.value = call
-        return expr
 
         return expr
 
