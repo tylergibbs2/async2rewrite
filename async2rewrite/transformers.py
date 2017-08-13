@@ -108,7 +108,13 @@ class DiscordTransformer(ast.NodeTransformer):
     @staticmethod
     def ensure_ctx_var(coro):
 
-        d_list = [d.attr for d in coro.decorator_list if isinstance(d, ast.Attribute)]
+        d_list = []
+        for d in coro.decorator_list:
+            if isinstance(d, ast.Attribute):
+                d_list.append(d.attr)
+            elif isinstance(d, ast.Call):
+                if isinstance(d.func, ast.Attribute):
+                    d_list.append(d.func.attr)
         if 'command' not in d_list:
             return coro
 
