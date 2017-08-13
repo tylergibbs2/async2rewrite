@@ -2,3 +2,4 @@
 \.idea/
 *.pyc
 run\.py
+.pypirc
