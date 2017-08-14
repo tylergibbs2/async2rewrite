@@ -54,6 +54,7 @@ class DiscordTransformer(ast.NodeTransformer):
         node = self.stateful_wait_for(node)
         node = self.to_tuple_to_to_rgb(node)
         node = self.channel_history(node)
+        node = self.stateful_send_file(node)
 
         return node
 
@@ -265,6 +266,36 @@ class DiscordTransformer(ast.NodeTransformer):
                 call.args = call.args[1:]
                 call.func.attr = 'edit'
                 stats_counter['call_changes'] += 1
+        return call
+
+    @staticmethod
+    def stateful_send_file(call):
+        if isinstance(call.func, ast.Attribute):
+            if call.func.attr == 'send_file':
+                dest = call.args[0]
+                send_as = call.args[1]
+                content = None
+                for kw in list(call.keywords):
+                    if kw.arg == 'filename':
+                        filename = kw
+                    if kw.arg == 'content':
+                        content = kw
+                call.func.value = dest
+                call.func.attr = 'send'
+                call.args = []
+                if content:
+                    call.args.append(content.value)
+                call.keywords = []
+                file_kw = ast.keyword()
+                file_kw.arg = 'file'
+                discord_file_call = ast.Call()
+                discord_file_call.func = ast.Attribute(value=ast.Name(id='discord', ctx=ast.Load()), attr='File', ctx=ast.Load())
+                discord_file_call.args = [send_as, filename.value]
+                discord_file_call.keywords = []
+                file_kw.value = discord_file_call
+                call.keywords.append(file_kw)
+                stats_counter['call_changes'] += 1
+
         return call
 
     @staticmethod

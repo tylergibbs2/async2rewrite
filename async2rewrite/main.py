@@ -9,6 +9,7 @@ def get_result(code, **kwargs):
 
     remove_parens = kwargs.pop('remove_parens', False)
     stats = kwargs.pop('stats', False)
+    include_ast = kwargs.pop('include_ast', False)
 
     def snowflake_repl(match):
         return str(int(match.group(1)))
@@ -27,13 +28,18 @@ def get_result(code, **kwargs):
     unparsed = unparsed.replace('ctx.message.guild', 'ctx.guild').replace('ctx.message.author', 'ctx.author')
     unparsed = unparsed.replace('ctx.message.channel', 'ctx.channel')
 
+    final_ast = ast.parse(unparsed)
+
     if remove_parens:
         def parens_repl(match):
             return match.group(1)
 
         unparsed = re.sub("""(?<=\s)\((.+)\)(?=[\s:])""", parens_repl, unparsed) # this can cause some issues
 
-    return unparsed
+    if include_ast:
+        return unparsed, final_ast
+    else:
+        return unparsed
 
 
 def from_file(file_path, **kwargs):
