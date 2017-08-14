@@ -18,8 +18,7 @@ def get_result(code, **kwargs):
     expr_ast = ast.parse(code)
 
     if stats:
-        print(find_stats(expr_ast))
-        return
+        return find_stats(expr_ast)
 
     new_ast = DiscordTransformer().generic_visit(expr_ast)
 
