@@ -8,6 +8,7 @@ from .transformers import *
 def get_result(code, **kwargs):
 
     remove_parens = kwargs.pop('remove_parens', False)
+    stats = kwargs.pop('stats', False)
 
     def snowflake_repl(match):
         return str(int(match.group(1)))
@@ -15,6 +16,11 @@ def get_result(code, **kwargs):
     code = re.sub("""['\"](\d{17,18,19})['\"]""", snowflake_repl, code)  # str snowflakes to int snowflakes
 
     expr_ast = ast.parse(code)
+
+    if stats:
+        print(find_stats(expr_ast))
+        return
+
     new_ast = DiscordTransformer().generic_visit(expr_ast)
 
     unparsed = astunparse.unparse(new_ast)

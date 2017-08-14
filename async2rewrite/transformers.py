@@ -1,5 +1,7 @@
 import ast
 
+from collections import Counter
+
 easy_stateful_list = ['add_reaction', 'add_roles', 'ban', 'clear_reactions', 'create_invite', 'create_custom_emoji',
                       'create_role', 'kick', 'remove_reaction', 'remove_roles', 'prune_members', 'unban',
                       'get_message', 'estimate_pruned_members']
@@ -9,6 +11,7 @@ easy_deletes_list = ['delete_custom_emoji', 'delete_channel', 'delete_invite', '
 
 easy_edits_list = ['edit_channel', 'edit_custom_emoji', 'edit_server']
 
+stats_counter = Counter()
 
 class DiscordTransformer(ast.NodeTransformer):
 
@@ -100,9 +103,11 @@ class DiscordTransformer(ast.NodeTransformer):
     def ext_event_changes(coro):
         if coro.name == 'on_command' or coro.name == 'on_command_completion':
             coro.args.args = coro.args.args[1:]
+            stats_counter['coro_changes'] += 1
             return coro
         elif coro.name == 'on_command_error':
             coro.args.args.reverse()
+            stats_counter['coro_changes'] += 1
             return coro
 
         return coro
@@ -111,10 +116,13 @@ class DiscordTransformer(ast.NodeTransformer):
     def event_changes(coro):
         if coro.name == 'on_voice_state_update':
             coro.args.args.insert(0, ast.arg(arg='member', annotation=None))
+            stats_counter['coro_changes'] += 1
         elif coro.name in ['on_guild_emojis_update', 'on_member_ban']:
             coro.args.args.insert(0, ast.arg(arg='guild', annotation=None))
+            stats_counter['coro_changes'] += 1
         elif coro.name in ['on_channel_delete', 'on_channel_create', 'on_channel_update']:
             coro.name = coro.name.replace('on_channel', 'on_guild_channel')
+            stats_counter['coro_changes'] += 1
         return coro
 
     @staticmethod
@@ -134,10 +142,13 @@ class DiscordTransformer(ast.NodeTransformer):
 
         if not coro_args:
             coro.args.args.append(ast.arg(arg='ctx', annotation=None))
+            stats_counter['coro_changes'] += 1
         elif 'self' in coro_args and 'ctx' not in coro_args:
             coro.args.args.insert(1, ast.arg(arg='ctx', annotation=None))
+            stats_counter['coro_changes'] += 1
         elif 'self' not in coro_args and 'ctx' not in coro_args:
             coro.args.args.insert(0, ast.arg(arg='ctx', annotation=None))
+            stats_counter['coro_changes'] += 1
 
         return coro
 
@@ -145,6 +156,7 @@ class DiscordTransformer(ast.NodeTransformer):
     def to_edited_at(attribute):
         if attribute.attr == 'edited_timestamp':
             attribute.attr = 'edited_at'
+            stats_counter['attribute_changes'] += 1
 
         return attribute
 
@@ -165,6 +177,7 @@ class DiscordTransformer(ast.NodeTransformer):
 
                 new_expr = ast.copy_location(new_expr, expr)
 
+                stats_counter['expr_changes'] += 1
                 return new_expr
         return expr
 
@@ -177,6 +190,7 @@ class DiscordTransformer(ast.NodeTransformer):
                 call.keywords = []
                 call.func = expr.value
                 expr.value = call
+                stats_counter['expr_changes'] += 1
 
         return expr
 
@@ -190,6 +204,7 @@ class DiscordTransformer(ast.NodeTransformer):
                     continue
                 if kw.arg == 'pass_context':  # if the pass_context kwarg is set to True
                     d.keywords.remove(kw)
+                    stats_counter['coro_changes'] += 1
         return n
 
     @staticmethod
@@ -199,6 +214,7 @@ class DiscordTransformer(ast.NodeTransformer):
         if call.func.attr == 'say':
             call.func.value = ast.Name(id='ctx', ctx=ast.Load())
             call.func.attr = 'send'
+            stats_counter['call_changes'] += 1
         elif call.func.attr == 'send_message':
             destination = call.args[0]
 
@@ -213,6 +229,7 @@ class DiscordTransformer(ast.NodeTransformer):
             newcall.keywords = call.keywords
 
             newcall = ast.copy_location(newcall, call)
+            stats_counter['call_changes'] += 1
 
             return newcall
 
@@ -225,6 +242,7 @@ class DiscordTransformer(ast.NodeTransformer):
                 message = call.args[0]
                 call.func.value = message
                 call.args = call.args[1:]
+                stats_counter['call_changes'] += 1
         return call
 
     @staticmethod
@@ -235,6 +253,7 @@ class DiscordTransformer(ast.NodeTransformer):
                 call.func.value = to_delete
                 call.args = call.args[1:]
                 call.func.attr = 'delete'
+                stats_counter['call_changes'] += 1
         return call
 
     @staticmethod
@@ -245,6 +264,7 @@ class DiscordTransformer(ast.NodeTransformer):
                 call.func.value = to_edit
                 call.args = call.args[1:]
                 call.func.attr = 'edit'
+                stats_counter['call_changes'] += 1
         return call
 
     @staticmethod
@@ -259,6 +279,7 @@ class DiscordTransformer(ast.NodeTransformer):
                     call.args = []
                 call.func.value = dest
                 call.func.attr = 'history'
+                stats_counter['call_changes'] += 1
         return call
 
     @staticmethod
@@ -271,6 +292,7 @@ class DiscordTransformer(ast.NodeTransformer):
                 nick = call.args[1]
                 call.args = []
                 call.keywords = [ast.keyword(arg='nick', value=nick)]
+                stats_counter['call_changes'] += 1
         return call
 
     @staticmethod
@@ -281,6 +303,7 @@ class DiscordTransformer(ast.NodeTransformer):
                 call.func.value = dest
                 call.func.attr = 'pins'
                 call.args = []
+                stats_counter['call_changes'] += 1
         return call
 
     @staticmethod
@@ -299,6 +322,7 @@ class DiscordTransformer(ast.NodeTransformer):
                 for kw in list(call.keywords):
                     if kw.arg != 'check' and kw.arg != 'timeout':
                         call.keywords.remove(kw)
+                stats_counter['call_changes'] += 1
         return call
 
     @staticmethod
@@ -309,6 +333,7 @@ class DiscordTransformer(ast.NodeTransformer):
                 call.func.value = to_edit
                 call.args = call.args[2:]
                 call.func.attr = 'edit'
+                stats_counter['call_changes'] += 1
         return call
 
     @staticmethod
@@ -316,6 +341,7 @@ class DiscordTransformer(ast.NodeTransformer):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'to_tuple':
                 call.func.attr = 'to_rgb'
+                stats_counter['call_changes'] += 1
 
         return call
 
@@ -327,6 +353,7 @@ class DiscordTransformer(ast.NodeTransformer):
                 call.func.value = dest
                 call.args = call.args[1:]
                 call.func.attr = 'trigger_typing'
+                stats_counter['call_changes'] += 1
         return call
 
     @staticmethod
@@ -340,6 +367,7 @@ class DiscordTransformer(ast.NodeTransformer):
                 call.func.attr = 'create_{}_channel'.format(channel_type)
                 guild = call.args[0]
                 call.func.value = guild
+                stats_counter['call_changes'] += 1
         return call
 
     @staticmethod
@@ -352,6 +380,7 @@ class DiscordTransformer(ast.NodeTransformer):
                 content = call.args[1]
                 call.args = call.args[2:]
                 call.keywords.append(ast.keyword(arg='content', value=content))
+                stats_counter['call_changes'] += 1
         return call
 
     @staticmethod
@@ -364,6 +393,7 @@ class DiscordTransformer(ast.NodeTransformer):
                 overwrite = call.args[2]
                 call.args = [call.args[1]]
                 call.keywords.append(ast.keyword(arg='overwrite', value=overwrite))
+                stats_counter['call_changes'] += 1
         return call
 
     @staticmethod
@@ -374,6 +404,7 @@ class DiscordTransformer(ast.NodeTransformer):
                 call.func.value = server
                 call.func.attr = 'leave'
                 call.args = []
+                stats_counter['call_changes'] += 1
         return call
 
     @staticmethod
@@ -389,6 +420,7 @@ class DiscordTransformer(ast.NodeTransformer):
                 call.func.value = message
                 call.func.attr = 'unpin'
                 call.args = []
+                stats_counter['call_changes'] += 1
         return call
 
     @staticmethod
@@ -399,4 +431,10 @@ class DiscordTransformer(ast.NodeTransformer):
                 call.func.value = guild
                 call.func.attr = 'bans'
                 call.args = []
+                stats_counter['call_changes'] += 1
         return call
+
+
+def find_stats(ast):
+    DiscordTransformer().generic_visit(ast)
+    return stats_counter
