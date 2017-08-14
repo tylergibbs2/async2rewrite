@@ -1,6 +1,14 @@
 # async2rewrite
 
+[![PyPI](https://img.shields.io/pypi/v/async2rewrite.svg)](https://pypi.python.org/pypi/async2rewrite)
+
 Automatically convert discord.py async branch code to rewrite branch code.
+
+## Installation
+
+```py
+python3 -m pip install -U async2rewrite
+```
 
 ### Usage
 
