@@ -4,7 +4,7 @@
 
 Automatically convert discord.py async branch code to rewrite branch code.
 
-## Installation
+### Installation
 
 ```py
 python3 -m pip install -U async2rewrite
