@@ -43,7 +43,7 @@ def get_result(code, **kwargs):
 
 
 def from_file(file_path, **kwargs):
-    with open(file_path, 'r') as f:
+    with open(file_path, 'r', encoding='utf-8') as f:
         code = f.read()
         return get_result(code, **kwargs)
 
