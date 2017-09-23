@@ -1,1 +1,1 @@
-py-backwards-astunparse>=1.5.0.post3
+git+https://github.com/nitros12/astunparse
