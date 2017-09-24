@@ -27,7 +27,7 @@ setup(
     author='Tyler Gibbs',
     author_email='gibbstyler7@gmail.com',
     url='https://github.com/TheTrain2000/async2rewrite',
-    # download_url='https://github.com/TheTrain2000/async2rewrite/archive/{}.tar.gz'.format(version),
+    download_url='https://github.com/TheTrain2000/async2rewrite/archive/{}.tar.gz'.format(version),
     keywords=['discord', 'discordpy', 'ast'],
     classifiers=[],
     install_requires=['https://github.com/nitros12/astunparse']
