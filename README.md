@@ -21,11 +21,16 @@ print(file_result)
 text_result = async2rewrite.from_text('async def on_command_error(ctx, error): pass')
 print(text_result)
 
-result_without_parens = async2rewrite.from_file('file/path', remove_parens=True)
+result_without_parens = async2rewrite.from_file('file/path')
 print(result_without_parens)
 
 stats = async2rewrite.from_file('file/path', stats=True)
 print(stats) # stats=True makes from_x return a Counter.
 ```
 
-Note that the `remove_parens` kwarg can cause issues, and that it will not be perfect.
+in this fork astunparse has been edited to not insert parens in most places they are not needed. for example:
+
+```py
+>>> async2rewrite.from_text("async def test(): a = await (await (await b.c).d)[await a.b]")
+"async def test(): a = await (await (await b.c).d)[await a.b]"
+```

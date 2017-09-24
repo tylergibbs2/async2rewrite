@@ -1,5 +1,4 @@
 import os
-
 from distutils.core import setup
 
 # Thanks Laura
@@ -17,18 +16,19 @@ def extract_version(module='async2rewrite'):
                 break
     return version
 
+
 version = extract_version()
 
 setup(
-  name='async2rewrite',
-  packages=['async2rewrite'],
-  version=version,
-  description='Convert discord.py code using abstract syntax trees.',
-  author='Tyler Gibbs',
-  author_email='gibbstyler7@gmail.com',
-  url='https://github.com/TheTrain2000/async2rewrite',
-  download_url='https://github.com/TheTrain2000/async2rewrite/archive/{}.tar.gz'.format(version),
-  keywords=['discord', 'discordpy', 'ast'],
-  classifiers=[],
-  install_requires=['py-backwards-astunparse>=1.5.0.post3']
+    name='async2rewrite',
+    packages=['async2rewrite'],
+    version=version,
+    description='Convert discord.py code using abstract syntax trees.',
+    author='Tyler Gibbs',
+    author_email='gibbstyler7@gmail.com',
+    url='https://github.com/TheTrain2000/async2rewrite',
+    download_url='https://github.com/TheTrain2000/async2rewrite/archive/{}.tar.gz'.format(version),
+    keywords=['discord', 'discordpy', 'ast'],
+    classifiers=[],
+    install_requires=['https://github.com/nitros12/astunparse']
 )
