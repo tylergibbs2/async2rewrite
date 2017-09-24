@@ -30,9 +30,9 @@ setup(
     download_url='https://github.com/TheTrain2000/async2rewrite/archive/{}.tar.gz'.format(version),
     keywords=['discord', 'discordpy', 'ast'],
     classifiers=[],
-    install_requires=['astunparse==1.5.0'],
+    install_requires=['astunparse-noparen==1.5.0-noparen'],
     dependency_links=[
-        "git+https://github.com/nitros12/astunparse.git#egg=astunparse-1.5.0"
+        "git+https://github.com/nitros12/astunparse.git#egg=astunparse-noparen-1.5.0-noparen"
     ]
 
 )
