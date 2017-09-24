@@ -1,6 +1,6 @@
 import re
 
-import astunparse
+import astunparse_noparen as astunparse
 
 from .transformers import *
 
