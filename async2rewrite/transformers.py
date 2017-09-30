@@ -13,6 +13,7 @@ easy_edits_list = ['edit_channel', 'edit_custom_emoji', 'edit_server']
 
 stats_counter = Counter()
 
+
 class DiscordTransformer(ast.NodeTransformer):
 
     def visit_FormattedValue(self, node):
@@ -275,11 +276,14 @@ class DiscordTransformer(ast.NodeTransformer):
                 dest = call.args[0]
                 send_as = call.args[1]
                 content = None
+                filename = None
                 for kw in list(call.keywords):
                     if kw.arg == 'filename':
                         filename = kw
                     if kw.arg == 'content':
                         content = kw
+                if filename is None:
+                    filename = call.args[1]
                 call.func.value = dest
                 call.func.attr = 'send'
                 call.args = []
@@ -289,7 +293,8 @@ class DiscordTransformer(ast.NodeTransformer):
                 file_kw = ast.keyword()
                 file_kw.arg = 'file'
                 discord_file_call = ast.Call()
-                discord_file_call.func = ast.Attribute(value=ast.Name(id='discord', ctx=ast.Load()), attr='File', ctx=ast.Load())
+                discord_file_call.func = ast.Attribute(value=ast.Name(id='discord', ctx=ast.Load()), attr='File',
+                                                       ctx=ast.Load())
                 discord_file_call.args = [send_as, filename.value]
                 discord_file_call.keywords = []
                 file_kw.value = discord_file_call
