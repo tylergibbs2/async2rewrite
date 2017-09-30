@@ -118,13 +118,11 @@ class DiscordTransformer(ast.NodeTransformer):
     def event_changes(coro):
         if coro.name == 'on_voice_state_update':
             coro.args.args.insert(0, ast.arg(arg='member', annotation=None))
-            stats_counter['coro_changes'] += 1
         elif coro.name in ['on_guild_emojis_update', 'on_member_ban']:
             coro.args.args.insert(0, ast.arg(arg='guild', annotation=None))
-            stats_counter['coro_changes'] += 1
         elif coro.name in ['on_channel_delete', 'on_channel_create', 'on_channel_update']:
             coro.name = coro.name.replace('on_channel', 'on_guild_channel')
-            stats_counter['coro_changes'] += 1
+        stats_counter['coro_changes'] += 1
         return coro
 
     @staticmethod
@@ -144,13 +142,12 @@ class DiscordTransformer(ast.NodeTransformer):
 
         if not coro_args:
             coro.args.args.append(ast.arg(arg='ctx', annotation=None))
-            stats_counter['coro_changes'] += 1
         elif 'self' in coro_args and 'ctx' not in coro_args:
             coro.args.args.insert(1, ast.arg(arg='ctx', annotation=None))
-            stats_counter['coro_changes'] += 1
         elif 'self' not in coro_args and 'ctx' not in coro_args:
             coro.args.args.insert(0, ast.arg(arg='ctx', annotation=None))
-            stats_counter['coro_changes'] += 1
+
+        stats_counter['coro_changes'] += 1
 
         return coro
 
@@ -358,6 +355,8 @@ class DiscordTransformer(ast.NodeTransformer):
                 for kw in list(call.keywords):
                     if kw.arg != 'check' and kw.arg != 'timeout':
                         call.keywords.remove(kw)
+                print('WARNING: wait_for change detected. Rewrite removes the author, channel, and content'
+                      ' keyword arguments from this method.')
                 stats_counter['call_changes'] += 1
         return call
 
