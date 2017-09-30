@@ -13,7 +13,7 @@ def get_result(code, **kwargs):
     def snowflake_repl(match):
         return str(int(match.group(1)))
 
-    code = re.sub(r"""['\"](\d{17,18,19})['\"]""", snowflake_repl,
+    code = re.sub(r"""['\"](\d{17,19})['\"]""", snowflake_repl,
                   code)  # str snowflakes to int snowflakes
 
     expr_ast = ast.parse(code)
