@@ -283,7 +283,7 @@ class DiscordTransformer(ast.NodeTransformer):
                     if kw.arg == 'content':
                         content = kw
                 if filename is None:
-                    filename = call.args[1]
+                    filename = ast.keyword(arg='filename', value=send_as)
                 call.func.value = dest
                 call.func.attr = 'send'
                 call.args = []
