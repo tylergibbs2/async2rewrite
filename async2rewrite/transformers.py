@@ -15,7 +15,6 @@ stats_counter = Counter()
 
 
 class DiscordTransformer(ast.NodeTransformer):
-
     def visit_FormattedValue(self, node):
         self.generic_visit(node)
 

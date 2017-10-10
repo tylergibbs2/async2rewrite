@@ -6,7 +6,6 @@ from .transformers import *
 
 
 def get_result(code, **kwargs):
-
     stats = kwargs.pop('stats', False)
     include_ast = kwargs.pop('include_ast', False)
 
