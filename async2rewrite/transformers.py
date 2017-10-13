@@ -1,6 +1,6 @@
+from collections import Counter
 import ast
 
-from collections import Counter
 
 easy_stateful_list = ['add_reaction', 'add_roles', 'ban', 'clear_reactions', 'create_invite', 'create_custom_emoji',
                       'create_role', 'kick', 'remove_reaction', 'remove_roles', 'prune_members', 'unban',
