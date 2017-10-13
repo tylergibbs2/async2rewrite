@@ -22,12 +22,16 @@ print(file_result) # file_result contains the converted code.
 
 ### Converting from Text
 ```py
+import async2rewrite
+
 text_result = async2rewrite.from_text('async def on_command_error(ctx, error): pass')
 print(text_result) # text_result contains the converted code.
 ```
 
 ### Getting Statistics
 ```py
+import async2rewrite
+
 stats = async2rewrite.from_file('file/path', stats=True)
 print(stats) # stats=True makes from_x return a collections Counter.
 ```
@@ -35,6 +39,7 @@ print(stats) # stats=True makes from_x return a collections Counter.
 [Pantsu has generously forked and edited astunparse](https://github.com/nitros12/astunparse) to not insert parens in most places they are not needed. For example:
 
 ```py
+>>> import async2rewrite
 >>> async2rewrite.from_text("async def test(): a = await (await (await b.c).d)[await a.b]")
 "async def test(): a = await (await (await b.c).d)[await a.b]"
 ```
