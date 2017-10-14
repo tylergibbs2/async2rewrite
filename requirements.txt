@@ -1,1 +1,1 @@
--e git+https://github.com/nitros12/astunparse#egg=astunparse
+astunparse-noparen >= 1.5.6
