@@ -45,3 +45,9 @@ print(stats) # stats=True makes from_x return a collections Counter.
 >>> async2rewrite.from_text("async def test(): a = await (await (await b.c).d)[await a.b]")
 "async def test(): a = await (await (await b.c).d)[await a.b]"
 ```
+
+<sub>Reina thought of the logo idea so props to Reina, for real. I could not have thought of anything
+ more imaginative or creative. I have no idea where this project would be without the creative lead of
+ such an experienced individual. The agreed upon terms were that I would be allowed to design a logo using
+ the exquisite creativity of Reina so long as I provide Reina with *exposure*. This paragraph here is the
+ exposure that Reina so desires.</sub>
