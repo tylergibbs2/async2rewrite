@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://github.com/TheTrain2000/async2rewrite/logo.png?raw=true" alt="async2rewrite">
+    <img src="https://github.com/TheTrain2000/async2rewrite/blob/master/logo.png?raw=true" alt="async2rewrite">
 </p>
 
 [![PyPI](https://img.shields.io/pypi/v/async2rewrite.svg)](https://pypi.python.org/pypi/async2rewrite)
