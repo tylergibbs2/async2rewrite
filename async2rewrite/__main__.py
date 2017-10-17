@@ -9,11 +9,13 @@ parser.add_argument('--suffix', dest='suffix', action='store', type=str, default
                     help='the suffix to use for file names when writing (default: \'.a2r.py\'')
 parser.add_argument('--print', dest='print', action='store_true',
                     help='print the output instead of writing for a file (default: false)')
-parser.set_defaults(print=False)
+parser.add_argument('--interactive', dest='interactive', action='store_true',
+                    help='start an interactive conversion session (default: false)')
+parser.set_defaults(print=False, interactive=False)
 
 results = parser.parse_args()
 
-converted = from_file(*results.paths)
+converted = from_file(*results.paths, interactive=results.interactive)
 
 for key, value in converted.items():
     if not results.print:

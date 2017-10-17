@@ -65,6 +65,18 @@ Example:
 
     python -m async2rewrite file/path --print
 
+Running Interactive Mode
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+async2rewrite provides an option to convert using an interactive mode.
+The interactive mode will prompt your before every change that it makes.
+
+Example:
+
+.. code:: sh
+
+    python -m async2rewrite file/path --interactive
+
 Module
 ~~~~~~
 

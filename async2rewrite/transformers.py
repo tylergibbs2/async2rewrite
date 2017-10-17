@@ -1,6 +1,6 @@
 from collections import Counter
-import ast
 import warnings
+import ast
 
 
 easy_stateful_list = ['add_reaction', 'add_roles', 'ban', 'clear_reactions', 'create_invite', 'create_custom_emoji',
@@ -15,7 +15,28 @@ easy_edits_list = ['edit_channel', 'edit_custom_emoji', 'edit_server']
 stats_counter = Counter()
 
 
+def prompt_change(msg: str):
+    print('\n' + msg)
+    result = input('> Make this change? (y/n) [y]: ')
+    if result == 'n':
+        return False
+
+    return True
+
+
 class DiscordTransformer(ast.NodeTransformer):
+    def __init__(self, **kwargs):
+        self.interactive = kwargs.pop('interactive', False)
+
+        if self.interactive:
+            print('Welcome to the async2rewrite interactive conversion process.\n\n'
+                  'Make sure to read the migrating documentation to ensure that you '
+                  'know what you\'re doing.\nLink: http://discordpy.readthedocs.io/en/rewrite/migrating.html\n\n'
+                  'Please enter values for the possible found conversions (just press '
+                  'Enter to accept a default value, if one is given in brackets).')
+
+        super().__init__()
+
     def visit_FormattedValue(self, node):
         self.generic_visit(node)
 
@@ -63,6 +84,15 @@ class DiscordTransformer(ast.NodeTransformer):
     def visit_arg(self, node):
         self.generic_visit(node)
 
+        if self.interactive:
+            input()
+
+        if 'server' in node.arg.lower():
+            if self.interactive and not prompt_change(
+                    'A possible change was found to change server to guild.'
+            ):
+                return node
+
         node.arg = node.arg.replace('server', 'guild').replace('Server', 'Guild')
         return node
 
@@ -71,11 +101,23 @@ class DiscordTransformer(ast.NodeTransformer):
 
         node = self.to_edited_at(node)
 
+        if 'server' in node.attr.lower():
+            if self.interactive and not prompt_change(
+                    'A possible change was found to change server to guild.'
+            ):
+                return node
+
         node.attr = node.attr.replace('server', 'guild').replace('Server', 'Guild')
         return node
 
     def visit_Name(self, node):
         self.generic_visit(node)
+
+        if 'server' in node.id.lower():
+            if self.interactive and not prompt_change(
+                    'A possible change was found to change server to guild.'
+            ):
+                return node
 
         node.id = node.id.replace('server', 'guild').replace('Server', 'Guild')
         return node
@@ -93,6 +135,12 @@ class DiscordTransformer(ast.NodeTransformer):
         node = self.remove_passcontext(node)
         node = self.event_changes(node)
 
+        if 'server' in node.name.lower():
+            if self.interactive and not prompt_change(
+                    'A possible change was found to change server to guild.'
+            ):
+                return node
+
         node.name = node.name.replace('server', 'guild').replace('Server', 'Guild')
 
         return node
@@ -102,32 +150,52 @@ class DiscordTransformer(ast.NodeTransformer):
 
         return node
 
-    @staticmethod
-    def ext_event_changes(coro):
+    def ext_event_changes(self, coro):
         if coro.name == 'on_command' or coro.name == 'on_command_completion':
+            if self.interactive and not prompt_change(
+                'A possible change was found to remove the command argument from {}.'.format(coro.name)
+            ):
+                return coro
+
             coro.args.args = coro.args.args[1:]
             stats_counter['coro_changes'] += 1
             return coro
         elif coro.name == 'on_command_error':
+            if self.interactive and not prompt_change(
+                'A possible change was found to reverse the arguments on {}.'.format(coro.name)
+            ):
+                return coro
+
             coro.args.args.reverse()
             stats_counter['coro_changes'] += 1
             return coro
 
         return coro
 
-    @staticmethod
-    def event_changes(coro):
+    def event_changes(self, coro):
         if coro.name == 'on_voice_state_update':
+            if self.interactive and not prompt_change(
+                'A possible change was found to insert the member argument into {}.'.format(coro.name)
+            ):
+                return coro
             coro.args.args.insert(0, ast.arg(arg='member', annotation=None))
         elif coro.name in ['on_guild_emojis_update', 'on_member_ban']:
+            if self.interactive and not prompt_change(
+                'A possible change was found to insert the guild argument into {}.'.format(coro.name)
+            ):
+                return coro
             coro.args.args.insert(0, ast.arg(arg='guild', annotation=None))
         elif coro.name in ['on_channel_delete', 'on_channel_create', 'on_channel_update']:
+            if self.interactive and not prompt_change(
+                'A possible change was found to change {} to {}.'.format(
+                    coro.name, coro.name.replace('on_channel', 'on_guild_channel'))
+            ):
+                return coro
             coro.name = coro.name.replace('on_channel', 'on_guild_channel')
         stats_counter['coro_changes'] += 1
         return coro
 
-    @staticmethod
-    def ensure_ctx_var(coro):
+    def ensure_ctx_var(self, coro):
 
         d_list = []
         for d in coro.decorator_list:
@@ -142,26 +210,40 @@ class DiscordTransformer(ast.NodeTransformer):
         coro_args = [arg.arg for arg in coro.args.args]
 
         if not coro_args:
+            if self.interactive and not prompt_change(
+                'A possible change was found to insert the ctx into {}.'.format(coro.name)
+            ):
+                return coro
             coro.args.args.append(ast.arg(arg='ctx', annotation=None))
         elif 'self' in coro_args and 'ctx' not in coro_args:
+            if self.interactive and not prompt_change(
+                'A possible change was found to insert the ctx into {}.'.format(coro.name)
+            ):
+                return coro
             coro.args.args.insert(1, ast.arg(arg='ctx', annotation=None))
         elif 'self' not in coro_args and 'ctx' not in coro_args:
+            if self.interactive and not prompt_change(
+                'A possible change was found to insert the ctx into {}.'.format(coro.name)
+            ):
+                return coro
             coro.args.args.insert(0, ast.arg(arg='ctx', annotation=None))
 
         stats_counter['coro_changes'] += 1
 
         return coro
 
-    @staticmethod
-    def to_edited_at(attribute):
+    def to_edited_at(self, attribute):
         if attribute.attr == 'edited_timestamp':
+            if self.interactive and not prompt_change(
+                'A possible change was found to change edited_timestamp to edited_at.'
+            ):
+                return attribute
             attribute.attr = 'edited_at'
             stats_counter['attribute_changes'] += 1
 
         return attribute
 
-    @staticmethod
-    def stateful_get_all_emojis(expr):
+    def stateful_get_all_emojis(self, expr):
         if not isinstance(expr.value, ast.Await):
             return expr
         if not isinstance(expr.value.value, ast.Call):
@@ -169,6 +251,10 @@ class DiscordTransformer(ast.NodeTransformer):
         call = expr.value.value
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'get_all_emojis':
+                if self.interactive and not prompt_change(
+                        'A possible change was found to make get_all_emojis stateful.'
+                ):
+                    return expr
                 new_expr = ast.Expr()
                 new_expr.value = ast.Attribute()
                 new_expr.value.value = call.func.value
@@ -181,10 +267,13 @@ class DiscordTransformer(ast.NodeTransformer):
                 return new_expr
         return expr
 
-    @staticmethod
-    def attr_to_meth(expr):
+    def attr_to_meth(self, expr):
         if isinstance(expr.value, ast.Attribute):
             if expr.value.attr in ['is_ready', 'is_default', 'is_closed']:
+                if self.interactive and not prompt_change(
+                        'A possible change was found to change {} into a method.'.format(expr.value.attr)
+                ):
+                    return expr
                 call = ast.Call()
                 call.args = []
                 call.keywords = []
@@ -194,8 +283,7 @@ class DiscordTransformer(ast.NodeTransformer):
 
         return expr
 
-    @staticmethod
-    def remove_passcontext(n):
+    def remove_passcontext(self, n):
         for d in n.decorator_list:
             if not isinstance(d, ast.Call):
                 continue
@@ -203,19 +291,30 @@ class DiscordTransformer(ast.NodeTransformer):
                 if not isinstance(kw.value, ast.NameConstant):
                     continue
                 if kw.arg == 'pass_context':  # if the pass_context kwarg is set to True
+                    if self.interactive and not prompt_change(
+                            'A possible change was found to remove the pass_context decorator from {}.'.format(n.name)
+                    ):
+                        return n
                     d.keywords.remove(kw)
                     stats_counter['coro_changes'] += 1
         return n
 
-    @staticmethod
-    def to_messageable(call):
+    def to_messageable(self, call):
         if not isinstance(call.func, ast.Attribute):
             return call
         if call.func.attr == 'say':
+            if self.interactive and not prompt_change(
+                'A possible change was found to change say to send.'
+            ):
+                return call
             call.func.value = ast.Name(id='ctx', ctx=ast.Load())
             call.func.attr = 'send'
             stats_counter['call_changes'] += 1
         elif call.func.attr == 'send_message':
+            if self.interactive and not prompt_change(
+                'A possible change was found to change send_message to send.'
+            ):
+                return call
             destination = call.args[0]
 
             wrap_attr = ast.Attribute()
@@ -235,20 +334,26 @@ class DiscordTransformer(ast.NodeTransformer):
 
         return call
 
-    @staticmethod
-    def easy_statefuls(call):
+    def easy_statefuls(self, call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr in easy_stateful_list:
+                if self.interactive and not prompt_change(
+                        'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                    return call
                 message = call.args[0]
                 call.func.value = message
                 call.args = call.args[1:]
                 stats_counter['call_changes'] += 1
         return call
 
-    @staticmethod
-    def easy_deletes(call):
+    def easy_deletes(self, call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr in easy_deletes_list:
+                if self.interactive and not prompt_change(
+                        'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                    return call
                 to_delete = call.args[0]
                 call.func.value = to_delete
                 call.args = call.args[1:]
@@ -256,10 +361,13 @@ class DiscordTransformer(ast.NodeTransformer):
                 stats_counter['call_changes'] += 1
         return call
 
-    @staticmethod
-    def easy_edits(call):
+    def easy_edits(self, call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr in easy_edits_list:
+                if self.interactive and not prompt_change(
+                        'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                    return call
                 to_edit = call.args[0]
                 call.func.value = to_edit
                 call.args = call.args[1:]
@@ -267,10 +375,13 @@ class DiscordTransformer(ast.NodeTransformer):
                 stats_counter['call_changes'] += 1
         return call
 
-    @staticmethod
-    def stateful_send_file(call):
+    def stateful_send_file(self, call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'send_file':
+                if self.interactive and not prompt_change(
+                        'A possible change was found to change send_file to send.'
+                ):
+                    return call
                 dest = call.args[0]
                 send_as = call.args[1]
                 content = None
@@ -301,10 +412,13 @@ class DiscordTransformer(ast.NodeTransformer):
 
         return call
 
-    @staticmethod
-    def channel_history(call):
+    def channel_history(self, call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'logs_from':
+                if self.interactive and not prompt_change(
+                        'A possible change was found to change logs_from to history.'
+                ):
+                    return call
                 dest = call.args[0]
                 call.args = call.args[1:]
                 if call.args:
@@ -316,10 +430,13 @@ class DiscordTransformer(ast.NodeTransformer):
                 stats_counter['call_changes'] += 1
         return call
 
-    @staticmethod
-    def stateful_change_nickname(call):
+    def stateful_change_nickname(self, call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'change_nickname':
+                if self.interactive and not prompt_change(
+                        'A possible change was found to make change_nickname into edit.'
+                ):
+                    return call
                 member = call.args[0]
                 call.func.value = member
                 call.func.attr = 'edit'
@@ -329,10 +446,13 @@ class DiscordTransformer(ast.NodeTransformer):
                 stats_counter['call_changes'] += 1
         return call
 
-    @staticmethod
-    def stateful_pins_from(call):
+    def stateful_pins_from(self, call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'pins_from':
+                if self.interactive and not prompt_change(
+                        'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                    return call
                 dest = call.args[0]
                 call.func.value = dest
                 call.func.attr = 'pins'
@@ -340,10 +460,13 @@ class DiscordTransformer(ast.NodeTransformer):
                 stats_counter['call_changes'] += 1
         return call
 
-    @staticmethod
-    def stateful_wait_for(call):
+    def stateful_wait_for(self, call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr in ['wait_for_message', 'wait_for_reaction']:
+                if self.interactive and not prompt_change(
+                        'A possible change was found to change {} into wait_for.'.format(call.func.attr)
+                ):
+                    return call
                 event = call.func.attr.split('_')[2]
                 event = 'message' if event == 'message' else 'reaction_add'
                 call.func.attr = 'wait_for'
@@ -361,10 +484,13 @@ class DiscordTransformer(ast.NodeTransformer):
                 stats_counter['call_changes'] += 1
         return call
 
-    @staticmethod
-    def stateful_edit_role(call):
+    def stateful_edit_role(self, call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'edit_role':
+                if self.interactive and not prompt_change(
+                        'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                    return call
                 to_edit = call.args[1]
                 call.func.value = to_edit
                 call.args = call.args[2:]
@@ -372,19 +498,25 @@ class DiscordTransformer(ast.NodeTransformer):
                 stats_counter['call_changes'] += 1
         return call
 
-    @staticmethod
-    def to_tuple_to_to_rgb(call):
+    def to_tuple_to_to_rgb(self, call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'to_tuple':
+                if self.interactive and not prompt_change(
+                        'A possible change was found to change {} into to_rgb.'.format(call.func.attr)
+                ):
+                    return call
                 call.func.attr = 'to_rgb'
                 stats_counter['call_changes'] += 1
 
         return call
 
-    @staticmethod
-    def stateful_send_typing(call):
+    def stateful_send_typing(self, call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'send_typing':
+                if self.interactive and not prompt_change(
+                        'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                    return call
                 dest = call.args[0]
                 call.func.value = dest
                 call.args = call.args[1:]
@@ -392,10 +524,13 @@ class DiscordTransformer(ast.NodeTransformer):
                 stats_counter['call_changes'] += 1
         return call
 
-    @staticmethod
-    def stateful_create_channel(call):
+    def stateful_create_channel(self, call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'create_channel':
+                if self.interactive and not prompt_change(
+                        'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                    return call
                 for kw in list(call.keywords):
                     if isinstance(kw.value, ast.Attribute):
                         channel_type = kw.value.attr
@@ -409,10 +544,13 @@ class DiscordTransformer(ast.NodeTransformer):
                 stats_counter['call_changes'] += 1
         return call
 
-    @staticmethod
-    def stateful_edit_message(call):
+    def stateful_edit_message(self, call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'edit_message':
+                if self.interactive and not prompt_change(
+                        'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                    return call
                 call.func.attr = 'edit'
                 message = call.args[0]
                 call.func.value = message
@@ -422,10 +560,13 @@ class DiscordTransformer(ast.NodeTransformer):
                 stats_counter['call_changes'] += 1
         return call
 
-    @staticmethod
-    def stateful_edit_channel_perms(call):
+    def stateful_edit_channel_perms(self, call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'edit_channel_permissions':
+                if self.interactive and not prompt_change(
+                        'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                    return call
                 call.func.attr = 'set_permissions'
                 channel = call.args[0]
                 call.func.value = channel
@@ -435,10 +576,13 @@ class DiscordTransformer(ast.NodeTransformer):
                 stats_counter['call_changes'] += 1
         return call
 
-    @staticmethod
-    def stateful_leave_server(call):
+    def stateful_leave_server(self, call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'leave_guild':
+                if self.interactive and not prompt_change(
+                        'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                    return call
                 server = call.args[0]
                 call.func.value = server
                 call.func.attr = 'leave'
@@ -446,15 +590,22 @@ class DiscordTransformer(ast.NodeTransformer):
                 stats_counter['call_changes'] += 1
         return call
 
-    @staticmethod
-    def stateful_pin_message(call):
+    def stateful_pin_message(self, call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'pin_message':
+                if self.interactive and not prompt_change(
+                        'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                    return call
                 message = call.args[0]
                 call.func.value = message
                 call.func.attr = 'pin'
                 call.args = []
             elif call.func.attr == 'unpin_message':
+                if self.interactive and not prompt_change(
+                        'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                    return call
                 message = call.args[0]
                 call.func.value = message
                 call.func.attr = 'unpin'
@@ -462,10 +613,13 @@ class DiscordTransformer(ast.NodeTransformer):
                 stats_counter['call_changes'] += 1
         return call
 
-    @staticmethod
-    def stateful_get_bans(call):
+    def stateful_get_bans(self, call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr == 'get_bans':
+                if self.interactive and not prompt_change(
+                        'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                    return call
                 guild = call.args[0]
                 call.func.value = guild
                 call.func.attr = 'bans'
