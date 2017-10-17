@@ -1,5 +1,6 @@
 from collections import Counter
 import ast
+import warnings
 
 
 easy_stateful_list = ['add_reaction', 'add_roles', 'ban', 'clear_reactions', 'create_invite', 'create_custom_emoji',
@@ -34,6 +35,7 @@ class DiscordTransformer(ast.NodeTransformer):
         return node
 
     def visit_Call(self, node):
+        """Modify calls to their appropriate rewrite counterparts."""
         self.generic_visit(node)
 
         # this all has to do with the stateful model changes
@@ -354,8 +356,8 @@ class DiscordTransformer(ast.NodeTransformer):
                 for kw in list(call.keywords):
                     if kw.arg != 'check' and kw.arg != 'timeout':
                         call.keywords.remove(kw)
-                print('WARNING: wait_for change detected. Rewrite removes the author, channel, and content'
-                      ' keyword arguments from this method.')
+                warnings.warn('wait_for change detected. Rewrite removes the author, channel, and content '
+                              'keyword arguments from this method.')
                 stats_counter['call_changes'] += 1
         return call
 

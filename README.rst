@@ -1,0 +1,101 @@
+.. image:: https://github.com/TheTrain2000/async2rewrite/blob/master/logo.png?raw=true
+    :align: center
+
+.. image:: https://img.shields.io/pypi/v/async2rewrite.svg
+    :target: https://pypi.python.org/pypi/async2rewrite
+
+Automatically convert discord.py async branch code to rewrite branch code.
+
+Installation
+------------
+
+.. code:: sh
+
+    python -m pip install -U async2rewrite
+
+Usage
+-----
+
+Command Line
+~~~~~~~~~~~~
+
+When converting files via the command line, async2rewrite will create a new Python
+file with the specified suffix. If no suffix is specified, the default suffix is used.
+
+For file paths, a path to a directory may also be passed. The library will locate all 
+Python files recursively inside of the passed directory.
+
+Single File
+^^^^^^^^^^^
+
+.. code:: sh
+
+    python -m async2rewrite file/path
+
+Multiple Files
+^^^^^^^^^^^^^^
+
+async2rewrite can automatically convert multiple files at once.
+
+.. code:: sh
+
+    python -m async2rewrite file/path1 file/path2 ...
+
+Specifying a Suffix
+^^^^^^^^^^^^^^^^^^^
+
+Use the ``--suffix`` flag to denote a custom suffix to add the the new file.
+The default suffix is ``.a2r.py``.
+
+Example:
+
+.. code:: sh
+
+    python -m async2rewrite file/path --suffix '.my_suffix.py'
+
+Module
+~~~~~~
+
+Converting a File
+^^^^^^^^^^^^^^^^^
+
+.. code:: py
+
+    import async2rewrite
+
+    file_result = async2rewrite.from_file('file/path')
+    print(file_result) # file_result contains the converted code.
+
+Multiple files can be converted by passing an unpacked list into ``from_file()``.
+
+Example:
+
+.. code:: py
+
+    async2rewrite.from_file('file/path', 'file/path2', 'file/path3', ...)
+
+Converting from Text
+^^^^^^^^^^^^^^^^^^^^
+
+.. code:: py
+
+    import async2rewrite
+
+    text_result = async2rewrite.from_text('async def on_command_error(ctx, error): pass')
+    print(text_result) # text_result contains the converted code.
+
+Getting Statistics
+^^^^^^^^^^^^^^^^^^
+
+.. code:: py
+
+    import async2rewrite
+
+    stats = async2rewrite.from_file('file/path', stats=True)
+    print(stats) # stats=True makes from_x return a collections Counter.
+
+Thanks
+------
+
+* Pantsu for forking and editing `astunparse <https://github.com/nitros12/astunparse>`_ to not insert unnecessary parentheses.
+* Reina for the logo idea
