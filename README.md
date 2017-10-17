@@ -78,6 +78,8 @@ stats = async2rewrite.from_file('file/path', stats=True)
 print(stats) # stats=True makes from_x return a collections Counter.
 ```
 
+---
+
 [Pantsu has generously forked and edited astunparse](https://github.com/nitros12/astunparse) to not insert parens in most places they are not needed. For example:
 
 ```py
