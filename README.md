@@ -9,12 +9,44 @@ Automatically convert discord.py async branch code to rewrite branch code.
 ## Installation
 
 ```py
-python3 -m pip install -U async2rewrite
+python -m pip install -U async2rewrite
 ```
 
 ## Usage
 
-### Converting a File
+### Command Line
+
+For a file path, a path to a directory may be passed. The library will locate all 
+Python files recursively inside of the passed directory.
+
+#### Single File
+
+```
+python -m async2rewrite file/path
+```
+
+#### Multiple Files
+
+async2rewrite can automatically convert multiple files at once.
+
+```
+python -m async2rewrite file/path1 file/path2 ...
+```
+
+#### Specifying a Suffix
+
+Use the `--suffix` flag to denote a custom suffix to add the the new file. 
+The default suffix is `.a2r.py`.
+
+Example:
+
+```
+python -m async2rewrite file/path --suffix '.my_suffix.py'
+```
+
+### Module
+
+#### Converting a File
 ```py
 import async2rewrite
 
@@ -22,7 +54,15 @@ file_result = async2rewrite.from_file('file/path')
 print(file_result) # file_result contains the converted code.
 ```
 
-### Converting from Text
+Multiple files can be converted by passing an unpacked list into `from_file()`.
+
+Example:
+
+```py
+async2rewrite.from_file('file/path', 'file/path2', 'file/path3', ...)
+```
+
+#### Converting from Text
 ```py
 import async2rewrite
 
@@ -30,7 +70,7 @@ text_result = async2rewrite.from_text('async def on_command_error(ctx, error): p
 print(text_result) # text_result contains the converted code.
 ```
 
-### Getting Statistics
+#### Getting Statistics
 ```py
 import async2rewrite
 
