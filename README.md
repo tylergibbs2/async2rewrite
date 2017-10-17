@@ -16,7 +16,10 @@ python -m pip install -U async2rewrite
 
 ### Command Line
 
-For a file path, a path to a directory may be passed. The library will locate all 
+When converting files via the command line, async2rewrite will create a new Python
+file with the specified suffix. If no suffix is specified, the default suffix is used.
+
+For file paths, a path to a directory may also be passed. The library will locate all 
 Python files recursively inside of the passed directory.
 
 #### Single File
