@@ -51,7 +51,19 @@ Example:
 
 .. code:: sh
 
-    python -m async2rewrite file/path --suffix '.my_suffix.py'
+    python -m async2rewrite file/path --suffix .my_suffix.py
+
+Printing the Output
+^^^^^^^^^^^^^^^^^^^
+
+If you would like to print the output instead of writing to a new file,
+the ``--print`` flag can be used.
+
+Example:
+
+.. code:: sh
+
+    python -m async2rewrite file/path --print
 
 Module
 ~~~~~~

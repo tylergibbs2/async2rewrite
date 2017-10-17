@@ -7,11 +7,17 @@ parser = argparse.ArgumentParser(description='Automatically convert discord.py a
 parser.add_argument('paths', type=str, nargs='+')
 parser.add_argument('--suffix', dest='suffix', action='store', type=str, default='.a2r.py',
                     help='the suffix to use for file names when writing (default: \'.a2r.py\'')
+parser.add_argument('--print', dest='print', action='store_true',
+                    help='print the output instead of writing for a file (default: false)')
+parser.set_defaults(print=False)
 
 results = parser.parse_args()
 
 converted = from_file(*results.paths)
 
 for key, value in converted.items():
-    with open(key + results.suffix, 'w', encoding='utf-8') as f:
-        f.write(value)
+    if not results.print:
+        with open(key + results.suffix, 'w', encoding='utf-8') as f:
+            f.write(value)
+    else:
+        print('{}\n{}'.format(key + results.suffix, value))
