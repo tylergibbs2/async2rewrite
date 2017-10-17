@@ -3,3 +3,4 @@
 *.pyc
 run\.py
 .pypirc
+.vscode/*
