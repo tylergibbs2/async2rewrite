@@ -2,5 +2,6 @@
 setup.cfg
 setup.py
 async2rewrite\__init__.py
+async2rewrite\__main__.py
 async2rewrite\main.py
 async2rewrite\transformers.py
