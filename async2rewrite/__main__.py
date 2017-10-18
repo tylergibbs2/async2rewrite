@@ -1,4 +1,5 @@
 import argparse
+import difflib
 
 from async2rewrite.main import from_file
 
@@ -11,11 +12,14 @@ parser.add_argument('--print', dest='print', action='store_true',
                     help='print the output instead of writing for a file (default: false)')
 parser.add_argument('--interactive', dest='interactive', action='store_true',
                     help='start an interactive conversion session (default: false)')
-parser.set_defaults(print=False, interactive=False)
+parser.add_argument('--diff', dest='diff', action='store_true',
+                    help='create a diff file for every file converted (default: false)')
+parser.set_defaults(print=False, interactive=False, diff=False)
 
 results = parser.parse_args()
 
 converted = from_file(*results.paths, interactive=results.interactive)
+d = difflib.Differ()
 
 for key, value in converted.items():
     if not results.print:
@@ -23,3 +27,13 @@ for key, value in converted.items():
             f.write(value)
     else:
         print('{}\n{}'.format(key + results.suffix, value))
+
+    if results.diff:
+        with open(key, 'r', encoding='utf-8') as f:
+            original = f.readlines()
+        with open(key + results.suffix, 'r', encoding='utf-8') as f:
+            new = f.readlines()
+
+        differences = d.compare(original, new)
+        with open(key + '.diff', 'w', encoding='utf-8') as f:
+            f.writelines(differences)
