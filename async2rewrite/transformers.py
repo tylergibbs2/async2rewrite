@@ -479,8 +479,12 @@ class DiscordTransformer(ast.NodeTransformer):
                 for kw in list(call.keywords):
                     if kw.arg != 'check' and kw.arg != 'timeout':
                         call.keywords.remove(kw)
-                warnings.warn('wait_for change detected. Rewrite removes the author, channel, and content '
-                              'keyword arguments from this method.')
+                        warnings.warn('wait_for keyword breaking change detected. Rewrite removes the {} keyword'
+                                      ' from wait_for.'.format(kw.arg))
+                    elif kw.arg == 'timeout':
+                        warnings.warn('wait_for timeout breaking change detected. Timeouts now raise '
+                                      'asyncio.TimeoutError instead of returning None.')
+
                 stats_counter['call_changes'] += 1
         return call
 
