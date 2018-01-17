@@ -10,7 +10,7 @@ async2rewrite does not complete 100% of the necessary conversions. It is a tool 
 tedious work required. async2rewrite will warn upon changes that it cannot make itself. Make sure to read the migration
 documentation for rewrite when using this tool.
 
-Migration Documentation <link>_
+`Migration Documentation`_
 
 .. _Docs: https://discordpy.readthedocs.io/en/rewrite/migrating.html
 
