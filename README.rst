@@ -6,12 +6,13 @@
 
 Automatically convert discord.py async branch code to rewrite branch code.
 
-    async2rewrite does not complete 100% of the necessary conversions. It is a tool designed to minimize the amount of
-    tedious work required. Make sure to read the migration documentation for rewrite when using this tool.
+async2rewrite does not complete 100% of the necessary conversions. It is a tool designed to minimize the amount of
+tedious work required. async2rewrite will warn upon changes that it cannot make itself. Make sure to read the migration
+documentation for rewrite when using this tool.
 
-`Migration Documentation`_
+Migration Documentation <link>_
 
-.. _Docs: https://discordpy.readthedocs.io/en/rewrite/migrating.html#user-and-member-type-split
+.. _Docs: https://discordpy.readthedocs.io/en/rewrite/migrating.html
 
 Installation
 ------------
