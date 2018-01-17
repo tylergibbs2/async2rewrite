@@ -198,7 +198,8 @@ class DiscordTransformer(ast.NodeTransformer):
         return coro
 
     def detect_voice(self, node):
-        if getattr(node, 'attr', None) in ["create_ffmpeg_player", "create_ytdl_player", "create_stream_player"]:
+        if getattr(node, 'attr', None) in ["create_ffmpeg_player", "create_ytdl_player",
+                                           "create_stream_player", "play_audio"]:
             warnings.warn("Voice implementation detected. This library does not convert voice.")
 
         return node
