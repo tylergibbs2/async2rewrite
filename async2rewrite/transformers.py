@@ -107,6 +107,8 @@ class DiscordTransformer(ast.NodeTransformer):
             ):
                 return node
 
+        self.detect_voice(node)
+
         node.attr = node.attr.replace('server', 'guild').replace('Server', 'Guild')
         return node
 
@@ -194,6 +196,12 @@ class DiscordTransformer(ast.NodeTransformer):
             coro.name = coro.name.replace('on_channel', 'on_guild_channel')
         stats_counter['coro_changes'] += 1
         return coro
+
+    def detect_voice(self, node):
+        if getattr(node, 'attr', None) in ["create_ffmpeg_player", "create_ytdl_player", "create_stream_player"]:
+            warnings.warn("Voice implementation detected. This library does not convert voice.")
+
+        return node
 
     def ensure_ctx_var(self, coro):
 
