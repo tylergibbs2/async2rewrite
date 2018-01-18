@@ -1,9 +1,10 @@
-import asyncio
+# This sample code is from the readme on the async branch of the official discord.py repo.
+# Author: Rapptz    Link: https://github.com/Rapptz/discord.py/
 
 import discord
+import asyncio
 
 client = discord.Client()
-
 
 @client.event
 async def on_ready():
@@ -11,7 +12,6 @@ async def on_ready():
     print(client.user.name)
     print(client.user.id)
     print('------')
-
 
 @client.event
 async def on_message(message):
@@ -26,6 +26,5 @@ async def on_message(message):
     elif message.content.startswith('!sleep'):
         await asyncio.sleep(5)
         await client.send_message(message.channel, 'Done sleeping')
-
 
 client.run('token')
