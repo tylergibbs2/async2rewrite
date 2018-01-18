@@ -24,6 +24,20 @@ def prompt_change(msg: str):
     return True
 
 
+def find_arg(call: ast.Call, arg_name: str, arg_pos: int=None):
+    found_value = None
+    for kw in call.keywords:
+        if arg_name == kw.arg:
+            found_value = kw.value
+            break
+    else:
+        try:
+            found_value = call.args[arg_pos]
+        except (IndexError, TypeError):
+            pass
+    return found_value
+
+
 class DiscordTransformer(ast.NodeTransformer):
     def __init__(self, **kwargs):
         self.interactive = kwargs.pop('interactive', False)
@@ -324,7 +338,11 @@ class DiscordTransformer(ast.NodeTransformer):
                 'A possible change was found to change send_message to send.'
             ):
                 return call
-            destination = call.args[0]
+            destination = find_arg(call, "destination", 0)
+
+            for kw in call.keywords.copy():
+                if kw.arg == "destination":
+                    call.keywords.remove(kw)
 
             wrap_attr = ast.Attribute()
             wrap_attr.value = destination
@@ -391,14 +409,16 @@ class DiscordTransformer(ast.NodeTransformer):
                         'A possible change was found to change send_file to send.'
                 ):
                     return call
-                dest = call.args[0]
-                send_as = call.args[1]
+                dest = find_arg(call, "destination", 0)
+                send_as = find_arg(call, "fp", 1)
                 content = None
                 filename = None
                 for kw in list(call.keywords):
-                    if kw.arg == 'filename':
+                    if kw.arg in ["destination", "fp"]:
+                        call.keywords.remove(kw)
+                    elif kw.arg == 'filename':
                         filename = kw
-                    if kw.arg == 'content':
+                    elif kw.arg == 'content':
                         content = kw
                 if filename is None:
                     filename = ast.keyword(arg='filename', value=send_as)
@@ -428,8 +448,8 @@ class DiscordTransformer(ast.NodeTransformer):
                         'A possible change was found to change logs_from to history.'
                 ):
                     return call
-                dest = call.args[0]
-                call.args = call.args[1:]
+                dest = find_arg(call, "channel", 0)
+                call.args.remove(dest)
                 if call.args:
                     limit = call.args[0]
                     call.keywords.append(ast.keyword(arg='limit', value=limit))
@@ -446,10 +466,10 @@ class DiscordTransformer(ast.NodeTransformer):
                         'A possible change was found to make change_nickname into edit.'
                 ):
                     return call
-                member = call.args[0]
+                member = find_arg(call, "member", 0)
                 call.func.value = member
                 call.func.attr = 'edit'
-                nick = call.args[1]
+                nick = find_arg(call, "nickname", 1)
                 call.args = []
                 call.keywords = [ast.keyword(arg='nick', value=nick)]
                 stats_counter['call_changes'] += 1
@@ -462,7 +482,7 @@ class DiscordTransformer(ast.NodeTransformer):
                         'A possible change was found to make {} stateful.'.format(call.func.attr)
                 ):
                     return call
-                dest = call.args[0]
+                dest = find_arg(call, "channel", 0)
                 call.func.value = dest
                 call.func.attr = 'pins'
                 call.args = []
@@ -504,7 +524,7 @@ class DiscordTransformer(ast.NodeTransformer):
                         'A possible change was found to make {} stateful.'.format(call.func.attr)
                 ):
                     return call
-                to_edit = call.args[1]
+                to_edit = find_arg(call, "role", 1)
                 call.func.value = to_edit
                 call.args = call.args[2:]
                 call.func.attr = 'edit'
@@ -530,7 +550,7 @@ class DiscordTransformer(ast.NodeTransformer):
                         'A possible change was found to make {} stateful.'.format(call.func.attr)
                 ):
                     return call
-                dest = call.args[0]
+                dest = find_arg(call, "destination", 0)
                 call.func.value = dest
                 call.args = call.args[1:]
                 call.func.attr = 'trigger_typing'
@@ -552,7 +572,7 @@ class DiscordTransformer(ast.NodeTransformer):
                 else:
                     channel_type = 'text'
                 call.func.attr = 'create_{}_channel'.format(channel_type)
-                guild = call.args[0]
+                guild = find_arg(call, "server", 0)
                 call.func.value = guild
                 stats_counter['call_changes'] += 1
         return call
@@ -565,11 +585,12 @@ class DiscordTransformer(ast.NodeTransformer):
                 ):
                     return call
                 call.func.attr = 'edit'
-                message = call.args[0]
+                message = find_arg(call, "message", 0)
                 call.func.value = message
-                content = call.args[1]
+                content = find_arg(call, "new_content", 1)
                 call.args = call.args[2:]
-                call.keywords.append(ast.keyword(arg='content', value=content))
+                if content is not None:
+                    call.keywords.append(ast.keyword(arg='content', value=content))
                 stats_counter['call_changes'] += 1
         return call
 
@@ -581,10 +602,10 @@ class DiscordTransformer(ast.NodeTransformer):
                 ):
                     return call
                 call.func.attr = 'set_permissions'
-                channel = call.args[0]
+                channel = find_arg(call, "channel", 0)
                 call.func.value = channel
-                overwrite = call.args[2]
-                call.args = [call.args[1]]
+                overwrite = find_arg(call, "overwrite", 2)
+                call.args = [find_arg(call, "target", 1)]
                 call.keywords.append(ast.keyword(arg='overwrite', value=overwrite))
                 stats_counter['call_changes'] += 1
         return call
@@ -596,7 +617,7 @@ class DiscordTransformer(ast.NodeTransformer):
                         'A possible change was found to make {} stateful.'.format(call.func.attr)
                 ):
                     return call
-                server = call.args[0]
+                server = find_arg(call, "server", 0)
                 call.func.value = server
                 call.func.attr = 'leave'
                 call.args = []
@@ -610,7 +631,7 @@ class DiscordTransformer(ast.NodeTransformer):
                         'A possible change was found to make {} stateful.'.format(call.func.attr)
                 ):
                     return call
-                message = call.args[0]
+                message = find_arg(call, "message", 0)
                 call.func.value = message
                 call.func.attr = 'pin'
                 call.args = []
@@ -619,7 +640,7 @@ class DiscordTransformer(ast.NodeTransformer):
                         'A possible change was found to make {} stateful.'.format(call.func.attr)
                 ):
                     return call
-                message = call.args[0]
+                message = find_arg(call, "message", 0)
                 call.func.value = message
                 call.func.attr = 'unpin'
                 call.args = []
@@ -633,7 +654,7 @@ class DiscordTransformer(ast.NodeTransformer):
                         'A possible change was found to make {} stateful.'.format(call.func.attr)
                 ):
                     return call
-                guild = call.args[0]
+                guild = find_arg(call, "server", 0)
                 call.func.value = guild
                 call.func.attr = 'bans'
                 call.args = []
