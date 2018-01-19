@@ -31,5 +31,5 @@ setup(
     keywords=['discord', 'discordpy', 'ast'],
     classifiers=[],
     install_requires=['astunparse-noparen>=1.5.6'],
-
+    test_requires=['pytest', 'pytest-cov']
 )
