@@ -94,6 +94,9 @@ class DiscordTransformer(ast.NodeTransformer):
         node = self.stateful_send_file(node)
         node = self.stateful_delete_channel_perms(node)
 
+        if node.func.attr == "delete_messages":
+            warnings.warn("Cannot convert delete_messages. Must be done manually.")
+
         return node
 
     def visit_arg(self, node):
