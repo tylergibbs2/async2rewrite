@@ -625,9 +625,8 @@ class DiscordTransformer(ast.NodeTransformer):
                 call.func.attr = 'set_permissions'
                 channel = find_arg(call, "channel", 0)
                 call.func.value = channel
-                overwrite = find_arg(call, "overwrite", 2)
-                call.args = [find_arg(call, "target", 1)]
-                call.keywords.append(ast.keyword(arg='overwrite', value=overwrite))
+                target = find_arg(call, "target", 1)
+                call.args = [target]
                 stats_counter['call_changes'] += 1
         return call
 
