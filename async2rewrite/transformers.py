@@ -572,7 +572,9 @@ class DiscordTransformer(ast.NodeTransformer):
                 else:
                     channel_type = 'text'
                 call.func.attr = 'create_{}_channel'.format(channel_type)
-                guild = find_arg(call, "server", 0)
+                guild = find_arg(call, "guild", 0)
+                if guild:
+                    call.args = call.args[1:]
                 call.func.value = guild
                 stats_counter['call_changes'] += 1
         return call
