@@ -7,9 +7,9 @@ easy_stateful_list = ['add_reaction', 'add_roles', 'ban', 'clear_reactions', 'cr
                       'create_role', 'kick', 'remove_reaction', 'remove_roles', 'prune_members', 'unban',
                       'get_message', 'estimate_pruned_members']
 
-easy_deletes_list = ['delete_custom_emoji', 'delete_channel', 'delete_invite', 'delete_message', 'delete_server']
+easy_deletes_list = ['delete_custom_emoji', 'delete_channel', 'delete_invite', 'delete_message', 'delete_guild']
 
-easy_edits_list = ['edit_channel', 'edit_custom_emoji', 'edit_server']
+easy_edits_list = ['edit_channel', 'edit_custom_emoji', 'edit_guild']
 
 stats_counter = Counter()
 
