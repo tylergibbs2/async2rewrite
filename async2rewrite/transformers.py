@@ -93,6 +93,7 @@ class DiscordTransformer(ast.NodeTransformer):
         node = self.stateful_send_file(node)
         node = self.stateful_delete_channel_perms(node)
         node = self.stateful_delete_role(node)
+        node = self.stateful_edit_profile(node)
 
         if node.func.attr == "delete_messages":
             warnings.warn("Cannot convert delete_messages. Must be done manually.")
@@ -613,6 +614,17 @@ class DiscordTransformer(ast.NodeTransformer):
                 if content is not None:
                     call.keywords.append(ast.keyword(arg='content', value=content))
                 stats_counter['call_changes'] += 1
+        return call
+
+    def stateful_edit_profile(self, call):
+        if isinstance(call.func, ast.Attribute):
+            if call.func.attr == 'edit_profile':
+                if self.interactive and not prompt_change(
+                    'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                    return call
+                call.func.attr = 'user.edit'
+
         return call
 
     def stateful_edit_channel_perms(self, call):
