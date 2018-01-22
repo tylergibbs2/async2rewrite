@@ -7,8 +7,7 @@ easy_stateful_list = ['add_reaction', 'add_roles', 'ban', 'clear_reactions', 'cr
                       'create_role', 'kick', 'remove_reaction', 'remove_roles', 'prune_members', 'unban',
                       'get_message', 'estimate_pruned_members']
 
-easy_deletes_list = ['delete_custom_emoji', 'delete_channel', 'delete_invite', 'delete_message', 'delete_role',
-                     'delete_server']
+easy_deletes_list = ['delete_custom_emoji', 'delete_channel', 'delete_invite', 'delete_message', 'delete_server']
 
 easy_edits_list = ['edit_channel', 'edit_custom_emoji', 'edit_server']
 
@@ -93,6 +92,7 @@ class DiscordTransformer(ast.NodeTransformer):
         node = self.channel_history(node)
         node = self.stateful_send_file(node)
         node = self.stateful_delete_channel_perms(node)
+        node = self.stateful_delete_role(node)
 
         if node.func.attr == "delete_messages":
             warnings.warn("Cannot convert delete_messages. Must be done manually.")
@@ -404,6 +404,21 @@ class DiscordTransformer(ast.NodeTransformer):
                 call.args = call.args[1:]
                 call.func.attr = 'edit'
                 stats_counter['call_changes'] += 1
+        return call
+
+    def stateful_delete_role(self, call):
+        if isinstance(call.func, ast.Attribute):
+            if call.func.attr == 'delete_role':
+                if self.interactive and not prompt_change(
+                    'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                    return call
+                role = find_arg(call, "role", 1)
+                call.func.value = role
+                call.func.attr = "delete"
+                call.args = []
+                call.keywords = []
+
         return call
 
     def stateful_send_file(self, call):
