@@ -92,6 +92,7 @@ class DiscordTransformer(ast.NodeTransformer):
         node = self.to_tuple_to_to_rgb(node)
         node = self.channel_history(node)
         node = self.stateful_send_file(node)
+        node = self.stateful_delete_channel_perms(node)
 
         return node
 
@@ -610,6 +611,23 @@ class DiscordTransformer(ast.NodeTransformer):
                 call.args = [find_arg(call, "target", 1)]
                 call.keywords.append(ast.keyword(arg='overwrite', value=overwrite))
                 stats_counter['call_changes'] += 1
+        return call
+
+    def stateful_delete_channel_perms(self, call):
+        if isinstance(call.func, ast.Attribute):
+            if call.func.attr == 'delete_channel_permissions':
+                if self.interactive and not prompt_change(
+                    'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                    return call
+                call.func.attr = 'set_permissions'
+                channel = find_arg(call, "channel", 0)
+                call.func.value = channel
+                call.args = []
+                call.keywords = []
+                call.keywords.append(ast.keyword(arg='overwrite', value=ast.NameConstant(None)))
+                stats_counter['call_changes'] += 1
+
         return call
 
     def stateful_leave_server(self, call):
