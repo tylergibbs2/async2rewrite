@@ -129,3 +129,38 @@ def test_estimate_pruned_members():
 def test_get_all_emojis():
     converted_code = async2rewrite.from_text("bot.get_all_emojis()")
     assert converted_code == "bot.emojis"
+
+
+def test_get_bans():
+    converted_code = async2rewrite.from_text("bot.get_bans(guild)")
+    assert converted_code == "guild.bans()"
+
+
+def test_get_message():
+    converted_code = async2rewrite.from_text("bot.get_message(channel, id)")
+    assert converted_code == "channel.get_message(id)"
+
+
+def test_get_reaction_users():
+    converted_code = async2rewrite.from_text("bot.get_reaction_users(rxn, limit=10)")
+    assert converted_code == "rxn.users(limit=10)"
+
+
+def test_invites_from():
+    converted_code = async2rewrite.from_text("bot.invites_from(server=guild)")
+    assert converted_code == "guild.invites()"
+
+
+def test_kick():
+    converted_code = async2rewrite.from_text("bot.kick(member)")
+    assert converted_code == "member.kick()"
+
+
+def test_leave_server():
+    converted_code = async2rewrite.from_text("bot.leave_server(server)")
+    assert converted_code == "guild.leave()"
+
+
+def test_logs_from():
+    converted_code = async2rewrite.from_text("bot.logs_from(chan, limit=50, reverse=True)")
+    assert converted_code == "chan.history(limit=50, reverse=True)"
