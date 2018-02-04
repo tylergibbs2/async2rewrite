@@ -52,7 +52,7 @@ def get_result(code, **kwargs):
     final_ast = ast.parse(unparsed)
 
     if include_ast:
-        return unparsed, final_ast
+        return unparsed.strip(), final_ast
     return unparsed.strip()
 
 
