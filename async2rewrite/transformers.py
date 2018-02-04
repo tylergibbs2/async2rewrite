@@ -94,7 +94,7 @@ class DiscordTransformer(ast.NodeTransformer):
         node = self.stateful_delete_role(node)
         node = self.stateful_edit_profile(node)
 
-        if node.func.attr == "delete_messages":
+        if isinstance(node.func, ast.Attribute) and node.func.attr == "delete_messages":
             warnings.warn("Cannot convert delete_messages. Must be done manually.")
 
         # Transforms below this comment change the node type.
