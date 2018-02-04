@@ -53,7 +53,7 @@ def get_result(code, **kwargs):
 
     if include_ast:
         return unparsed, final_ast
-    return unparsed
+    return unparsed.strip()
 
 
 def process_file(file, **kwargs):
