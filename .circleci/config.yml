@@ -1,0 +1,25 @@
+
+version: 2
+jobs:
+  tox:
+    docker:
+      - image: themattrix/tox
+
+    working_directory: ~/repo
+
+    steps:
+      - run:
+          name: Install git for codecov
+          command: apt update && apt install git -y
+
+      - checkout
+
+      - run:
+          name: pytest via tox
+          command: tox
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - tox
