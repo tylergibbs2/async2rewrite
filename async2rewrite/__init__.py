@@ -6,7 +6,7 @@ Convert discord.py code using abstract syntax trees.
 
 __title__ = 'async2rewrite'
 __author__ = 'Tyler Gibbs'
-__version__ = '0.1.4'
+__version__ = '0.1.5'
 __copyright__ = 'Copyright 2017 TheTrain2000'
 __license__ = 'MIT'
 
