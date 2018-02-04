@@ -11,6 +11,8 @@ easy_deletes_list = ['delete_custom_emoji', 'delete_channel', 'delete_invite', '
 
 easy_edits_list = ['edit_channel', 'edit_custom_emoji', 'edit_guild']
 
+removed_methods = ['wait_until_ready', 'wait_until_login', 'messages']
+
 stats_counter = Counter()
 
 
@@ -95,9 +97,19 @@ class DiscordTransformer(ast.NodeTransformer):
         node = self.stateful_edit_profile(node)
         node = self.stateful_invites_from(node)
         node = self.stateful_get_reaction_users(node)
+        node = self.stateful_move_channel(node)
+        node = self.stateful_move_role(node)
+        node = self.stateful_move_member(node)
+        node = self.stateful_purge_from(node)
+        node = self.stateful_replace_roles(node)
+        node = self.stateful_server_voice_state(node)
+        node = self.stateful_start_private_message(node)
 
         if isinstance(node.func, ast.Attribute) and node.func.attr == "delete_messages":
             warnings.warn("Cannot convert delete_messages. Must be done manually.")
+
+        if isinstance(node.func, ast.Attribute) and node.func.attr in removed_methods:
+            warnings.warn("{} was removed in rewrite. Fix your code accordingly.".format(node.func.attr))
 
         # Transforms below this comment change the node type.
 
@@ -362,6 +374,95 @@ class DiscordTransformer(ast.NodeTransformer):
 
         return call
 
+    def stateful_purge_from(self, call):
+        if isinstance(call.func, ast.Attribute):
+            if call.func.attr == "purge_from":
+                if self.interactive and not prompt_change(
+                    "A possible change was found to make {} stateful.".format(call.func.attr)
+                ):
+                    return call
+
+                call.func.attr = 'purge'
+                dest = find_arg(call, "channel", 0)
+                call.args = []
+                call.func.value = dest
+
+        return call
+
+    def stateful_replace_roles(self, call):
+        if isinstance(call.func, ast.Attribute):
+            if call.func.attr == "replace_roles":
+                if self.interactive and not prompt_change(
+                    'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                    return call
+                call.func.attr = 'edit'
+                call.func.value = find_arg(call, 'member', 0)
+                roles = call.args[1:]
+                call.args = []
+                call.keywords = [ast.keyword(arg='roles', value=ast.List(elts=roles, ctx=ast.Store()))]
+
+        return call
+
+    def stateful_server_voice_state(self, call):
+        if isinstance(call.func, ast.Attribute):
+            if call.func.attr == "guild_voice_state":
+                if self.interactive and not prompt_change(
+                    'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                    return call
+                call.func.attr = 'edit'
+                call.func.value = find_arg(call, 'member', 0)
+                call.args = []
+
+        return call
+
+    def stateful_move_channel(self, call):
+        if isinstance(call.func, ast.Attribute):
+            if call.func.attr == 'move_channel':
+                if self.interactive and not prompt_change(
+                    'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                        return call
+                call.func.attr = 'edit'
+                obj = find_arg(call, 'channel', 0)
+                pos = find_arg(call, 'position', 1)
+                call.func.value = obj
+                call.args = []
+                call.keywords = [ast.keyword(arg='position', value=pos)]
+
+        return call
+
+    def stateful_start_private_message(self, call):
+        if isinstance(call.func, ast.Attribute):
+            if call.func.attr == "start_private_message":
+                if self.interactive and not prompt_change(
+                    'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                    return call
+                call.func.attr = 'create_dm'
+                call.func.value = find_arg(call, 'user', 0)
+                call.args = []
+                call.keywords = []
+
+        return call
+
+    def stateful_move_role(self, call):
+        if isinstance(call.func, ast.Attribute):
+            if call.func.attr == 'move_role':
+                if self.interactive and not prompt_change(
+                    'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                        return call
+                call.func.attr = 'edit'
+                obj = find_arg(call, 'role', 1)
+                pos = find_arg(call, 'position', 2)
+                call.func.value = obj
+                call.args = []
+                call.keywords = [ast.keyword(arg='position', value=pos)]
+
+        return call
+
     def easy_statefuls(self, call):
         if isinstance(call.func, ast.Attribute):
             if call.func.attr in easy_stateful_list:
@@ -449,8 +550,8 @@ class DiscordTransformer(ast.NodeTransformer):
                 discord_file_call = ast.Call()
                 discord_file_call.func = ast.Attribute(value=ast.Name(id='discord', ctx=ast.Load()), attr='File',
                                                        ctx=ast.Load())
-                discord_file_call.args = [send_as, filename.value]
-                discord_file_call.keywords = []
+                discord_file_call.args = [send_as]
+                discord_file_call.keywords = [ast.keyword(arg='filename', value=filename.value)]
                 file_kw.value = discord_file_call
                 call.keywords.append(file_kw)
                 stats_counter['call_changes'] += 1
@@ -694,6 +795,22 @@ class DiscordTransformer(ast.NodeTransformer):
                 call.func.attr = 'leave'
                 call.args = []
                 stats_counter['call_changes'] += 1
+        return call
+
+    def stateful_move_member(self, call):
+        if isinstance(call.func, ast.Attribute):
+            if call.func.attr == 'move_member':
+                if self.interactive and not prompt_change(
+                    'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                    return call
+                call.func.attr = 'edit'
+                member = find_arg(call, 'member', 0)
+                channel = find_arg(call, 'channel', 1)
+                call.func.value = member
+                call.args = []
+                call.keywords = [ast.keyword(arg='voice_channel', value=channel)]
+
         return call
 
     def stateful_pin_message(self, call):

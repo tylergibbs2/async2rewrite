@@ -1,4 +1,7 @@
 import async2rewrite
+import pytest
+
+import warnings
 
 
 def test_add_reaction():
@@ -164,3 +167,109 @@ def test_leave_server():
 def test_logs_from():
     converted_code = async2rewrite.from_text("bot.logs_from(chan, limit=50, reverse=True)")
     assert converted_code == "chan.history(limit=50, reverse=True)"
+
+
+def test_move_channel():
+    converted_code = async2rewrite.from_text("bot.move_channel(channel, position)")
+    assert converted_code == "channel.edit(position=position)"
+
+
+def test_move_role():
+    converted_code = async2rewrite.from_text("bot.move_role(server, role, pos)")
+    assert converted_code == "role.edit(position=pos)"
+
+
+def test_move_member():
+    converted_code = async2rewrite.from_text("bot.move_member(mem, chan)")
+    assert converted_code == "mem.edit(voice_channel=chan)"
+
+
+def test_pin_message():
+    converted_code = async2rewrite.from_text("bot.pin_message(msg)")
+    assert converted_code == "msg.pin()"
+
+
+def test_pins_from():
+    converted_code = async2rewrite.from_text("bot.pins_from(dest)")
+    assert converted_code == "dest.pins()"
+
+
+def test_prune_members():
+    converted_code = async2rewrite.from_text("bot.prune_members(server)")
+    assert converted_code == "guild.prune_members()"
+
+
+def test_purge_from():
+    converted_code = async2rewrite.from_text("bot.purge_from(dest, limit=5, check=my_check)")
+    assert converted_code == "dest.purge(limit=5, check=my_check)"
+
+
+def test_remove_reaction():
+    converted_code = async2rewrite.from_text("bot.remove_reaction(msg, emoji, member)")
+    assert converted_code == "msg.remove_reaction(emoji, member)"
+
+
+def test_remove_roles():
+    converted_code = async2rewrite.from_text("bot.remove_roles(member, role1, role2, role3)")
+    assert converted_code == "member.remove_roles(role1, role2, role3)"
+
+
+def test_replace_roles():
+    converted_code = async2rewrite.from_text("bot.replace_roles(member, role1, role2)")
+    assert converted_code == "member.edit(roles=[role1, role2])"
+
+
+def test_send_file():
+    converted_code = async2rewrite.from_text("bot.send_file(dest, 'to_send.png',"
+                                             " filename='my_file.png', content='File')")
+    assert converted_code == "dest.send('File', file=discord.File('to_send.png', filename='my_file.png'))"
+
+
+def test_send_message():
+    converted_code = async2rewrite.from_text("bot.send_message(dest, 'Content')")
+    assert converted_code == "dest.send('Content')"
+
+
+def test_send_typing():
+    converted_code = async2rewrite.from_text("bot.send_typing(dest)")
+    assert converted_code == "dest.trigger_typing()"
+
+
+def test_server_voice_state():
+    converted_code = async2rewrite.from_text("bot.server_voice_state(member, mute=True, deafen=True)")
+    assert converted_code == "member.edit(mute=True, deafen=True)"
+
+
+def test_stateful_start_private_message():
+    converted_code = async2rewrite.from_text("bot.start_private_message(user)")
+    assert converted_code == "user.create_dm()"
+
+
+def test_unban():
+    converted_code = async2rewrite.from_text("bot.unban(server, user)")
+    assert converted_code == "guild.unban(user)"
+
+
+def test_unpin_message():
+    converted_code = async2rewrite.from_text("bot.unpin_message(msg)")
+    assert converted_code == "msg.unpin()"
+
+
+def test_wait_for_message_working():
+    converted_code = async2rewrite.from_text("bot.wait_for_message(check=my_check)")
+    assert converted_code == "bot.wait_for('message', check=my_check)"
+
+
+def test_wait_for_message_warning():
+    with pytest.warns(UserWarning):
+        async2rewrite.from_text("bot.wait_for_message(author=member)")
+
+
+def test_wait_for_reaction_working():
+    converted_code = async2rewrite.from_text("bot.wait_for_reaction(check=my_check)")
+    assert converted_code == "bot.wait_for('reaction_add', check=my_check)"
+
+
+def test_wait_for_reaction_warning():
+    with pytest.warns(UserWarning):
+        async2rewrite.from_text("bot.wait_for_reaction(author=member)")
