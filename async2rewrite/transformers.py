@@ -63,7 +63,6 @@ class DiscordTransformer(ast.NodeTransformer):
     def visit_Expr(self, node):
         self.generic_visit(node)
 
-        node = self.stateful_get_all_emojis(node)
         node = self.attr_to_meth(node)
 
         return node
@@ -97,6 +96,10 @@ class DiscordTransformer(ast.NodeTransformer):
 
         if node.func.attr == "delete_messages":
             warnings.warn("Cannot convert delete_messages. Must be done manually.")
+
+        # Transforms below this comment change the node type.
+
+        node = self.stateful_get_all_emojis(node)
 
         return node
 
@@ -271,30 +274,6 @@ class DiscordTransformer(ast.NodeTransformer):
 
         return attribute
 
-    def stateful_get_all_emojis(self, expr):
-        if not isinstance(expr.value, ast.Await):
-            return expr
-        if not isinstance(expr.value.value, ast.Call):
-            return expr
-        call = expr.value.value
-        if isinstance(call.func, ast.Attribute):
-            if call.func.attr == 'get_all_emojis':
-                if self.interactive and not prompt_change(
-                        'A possible change was found to make get_all_emojis stateful.'
-                ):
-                    return expr
-                new_expr = ast.Expr()
-                new_expr.value = ast.Attribute()
-                new_expr.value.value = call.func.value
-                new_expr.value.attr = 'emojis'
-                new_expr.value.ctx = ast.Load()
-
-                new_expr = ast.copy_location(new_expr, expr)
-
-                stats_counter['expr_changes'] += 1
-                return new_expr
-        return expr
-
     def attr_to_meth(self, expr):
         if isinstance(expr.value, ast.Attribute):
             if expr.value.attr in ['is_ready', 'is_default', 'is_closed']:
@@ -326,6 +305,21 @@ class DiscordTransformer(ast.NodeTransformer):
                     d.keywords.remove(kw)
                     stats_counter['coro_changes'] += 1
         return n
+
+    def stateful_get_all_emojis(self, call):
+        if not isinstance(call.func, ast.Attribute):
+            return call
+        if call.func.attr != 'get_all_emojis':
+            return call
+        if self.interactive and not prompt_change(
+            "A possible change was found to make get_all_emojis an attribute."
+        ):
+            return call
+        new_expr = ast.Expr()
+        ast.copy_location(new_expr, call)
+        call.func.attr = 'emojis'
+        new_expr.value = call.func
+        return new_expr
 
     def to_messageable(self, call):
         if not isinstance(call.func, ast.Attribute):
