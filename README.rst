@@ -3,6 +3,8 @@
 
 .. image:: https://img.shields.io/pypi/v/async2rewrite.svg
     :target: https://pypi.python.org/pypi/async2rewrite
+.. image:: https://img.shields.io/codecov/c/github/TheTrain2000/async2rewrite.svg
+    :target: https://codecov.io/gh/TheTrain2000/async2rewrite
 
 Automatically convert discord.py async branch code to rewrite branch code.
 
