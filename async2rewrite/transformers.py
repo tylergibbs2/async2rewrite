@@ -93,6 +93,8 @@ class DiscordTransformer(ast.NodeTransformer):
         node = self.stateful_delete_channel_perms(node)
         node = self.stateful_delete_role(node)
         node = self.stateful_edit_profile(node)
+        node = self.stateful_invites_from(node)
+        node = self.stateful_get_reaction_users(node)
 
         if isinstance(node.func, ast.Attribute) and node.func.attr == "delete_messages":
             warnings.warn("Cannot convert delete_messages. Must be done manually.")
@@ -543,6 +545,33 @@ class DiscordTransformer(ast.NodeTransformer):
                 call.args = call.args[2:]
                 call.func.attr = 'edit'
                 stats_counter['call_changes'] += 1
+        return call
+
+    def stateful_get_reaction_users(self, call):
+        if isinstance(call.func, ast.Attribute):
+            if call.func.attr == 'get_reaction_users':
+                if self.interactive and not prompt_change(
+                    'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                    return call
+                call.func.attr = 'users'
+                rxn = find_arg(call, 'reaction', 0)
+                call.func.value = rxn
+                call.args = call.args[1:]
+        return call
+
+    def stateful_invites_from(self, call):
+        if isinstance(call.func, ast.Attribute):
+            if call.func.attr == 'invites_from':
+                if self.interactive and not prompt_change(
+                    'A possible change was found to make {} stateful.'.format(call.func.attr)
+                ):
+                    return call
+                call.func.attr = 'invites'
+                call.func.value = find_arg(call, 'server', 0)
+                call.args = []
+                call.keywords = []
+
         return call
 
     def to_tuple_to_to_rgb(self, call):
