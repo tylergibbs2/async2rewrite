@@ -45,7 +45,7 @@ def get_result(code, **kwargs):
 
     unparsed = unparsed.replace('ctx.message.guild', 'ctx.guild').replace(
         'ctx.message.author', 'ctx.author')
-    unparsed = unparsed.replace('ctx.message.channel', 'ctx.channel')
+    unparsed = unparsed.replace('ctx.message.channel', 'ctx.channel').replace('ctx.guild.me', 'ctx.me')
 
     # This compiles our new code, ensuring that the syntax is valid
     # and allowing us to return the syntax tree if requested.
