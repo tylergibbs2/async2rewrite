@@ -141,7 +141,7 @@ class Snippet(tk.Toplevel):
                 text = f"\n\n# {type(e).__name__}: \n# {str(e).replace('<unknown>', '<async2rewrite converter>')}"
                 self.input_text.insert(tk.END, text)
         else:
-            self.input_text.insert(tk.END, f"\n\n# Conversion{conversion}")
+            self.input_text.insert(tk.END, f"\n\n# Conversion\n\n{conversion}")
 
     def replace_tabs(self, event=None):
         self.input_text.insert(tk.INSERT, "    ")
