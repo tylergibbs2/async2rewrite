@@ -11,7 +11,7 @@ easy_deletes_list = ['delete_custom_emoji', 'delete_channel', 'delete_invite', '
 
 easy_edits_list = ['edit_channel', 'edit_custom_emoji', 'edit_guild']
 
-removed_methods = ['wait_until_ready', 'wait_until_login', 'messages']
+removed_methods = ['wait_until_login', 'messages']
 
 stats_counter = Counter()
 
