@@ -19,10 +19,13 @@ def get_result(code, **kwargs):
     and converting to shorthands where available.
     """
 
+    pep8_style = yapf_api.style.CreatePEP8Style()
+    pep8_style['COLUMN_LIMIT'] = 120
+
     stats = kwargs.pop('stats', False)
     include_ast = kwargs.pop('include_ast', False)
     interactive = kwargs.pop('interactive', False)
-    yapf = kwargs.pop('yapf', None)
+    yapf = kwargs.pop('yapf', pep8_style)
 
     def snowflake_repl(match):
         # Cast the snowflake string into an integer

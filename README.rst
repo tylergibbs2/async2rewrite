@@ -138,7 +138,9 @@ Getting Statistics
 Running a YAPF Pass
 ^^^^^^^^^^^^^^^^^^^
 
-The YAPF pass is ran after code conversion, and is disabled by default.
+The YAPF pass is ran after code conversion, and converts to PEP8 by default.
+The automatic PEP8 formatting can be changed to a different style, or can be
+disabled completely.
 
 More documentation and information can be found on the official repository.
 
@@ -151,12 +153,8 @@ Example:
 .. code:: py
 
     import async2rewrite
-    from yapf import yapf_api
 
-    pep8_style = yapf_api.style.CreatePEP8Style()  # Creates the PEP8 style included with YAPF.
-    pep8_style['COLUMN_LIMIT'] = 120  # Set the style column limit to 120.
-
-    text_result = async2rewrite.from_file('file/path', yapf=pep8_style)  # Run async2rewrite with the YAPF pass.
+    text_result = async2rewrite.from_file('file/path', yapf=None)  # Disables the automatic YAPF pass.
     print(text_result['file/path'])
 
 Thanks
