@@ -98,7 +98,7 @@ Converting a File
     import async2rewrite
 
     file_result = async2rewrite.from_file('file/path')
-    print(file_result) # file_result contains the converted code.
+    print(file_result)  # file_result contains the converted code.
 
 Multiple files can be converted by passing an unpacked list into ``from_file()``.
 
@@ -116,7 +116,7 @@ Converting from Text
     import async2rewrite
 
     text_result = async2rewrite.from_text('async def on_command_error(ctx, error): pass')
-    print(text_result) # text_result contains the converted code.
+    print(text_result)  # text_result contains the converted code.
 
 Getting Statistics
 ^^^^^^^^^^^^^^^^^^
@@ -126,7 +126,31 @@ Getting Statistics
     import async2rewrite
 
     stats = async2rewrite.from_file('file/path', stats=True)
-    print(stats) # stats=True makes from_x return a collections Counter.
+    print(stats)  # stats=True makes from_x return a collections Counter.
+
+Running a YAPF Pass
+^^^^^^^^^^^^^^^^^^^
+
+The YAPF pass is ran after code conversion, and is disabled by default.
+
+More documentation and information can be found on the official repository.
+
+`YAPF Repository`_
+
+.. _YAPF Repository: https://github.com/google/yapf
+
+Example:
+
+.. code:: py
+
+    import async2rewrite
+    from yapf import yapf_api
+
+    pep8_style = yapf_api.style.CreatePEP8Style()  # Creates the PEP8 style included with YAPF.
+    pep8_style['COLUMN_LIMIT'] = 120  # Set the style column limit to 120.
+
+    text_result = async2rewrite.from_file('file/path', yapf=pep8_style)  # Run async2rewrite with the YAPF pass.
+    print(text_result)
 
 Thanks
 ------
