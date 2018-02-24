@@ -93,12 +93,16 @@ Module
 Converting a File
 ^^^^^^^^^^^^^^^^^
 
+The `from_file()` method returns a dictionary. The dictionary keys are the file names,
+and the values can either be a tuple or a string. If `stats=True` or `include_ast=True`, then
+`from_file()` will return a tuple. The 0th index in the tuple will always be the converted code.
+
 .. code:: py
 
     import async2rewrite
 
     file_result = async2rewrite.from_file('file/path')
-    print(file_result)  # file_result contains the converted code.
+    print(file_result['file/path'])  # file_result contains the converted code.
 
 Multiple files can be converted by passing an unpacked list into ``from_file()``.
 
@@ -106,7 +110,10 @@ Example:
 
 .. code:: py
 
-    async2rewrite.from_file('file/path', 'file/path2', 'file/path3', ...)
+    results = async2rewrite.from_file('file/path', 'file/path2', 'file/path3', ...)
+
+    for converted_file in results:  # from_file() returns a dictionary.
+        print(converted_file)  # Print out the result of each file.
 
 Converting from Text
 ^^^^^^^^^^^^^^^^^^^^
@@ -126,7 +133,7 @@ Getting Statistics
     import async2rewrite
 
     stats = async2rewrite.from_file('file/path', stats=True)
-    print(stats)  # stats=True makes from_x return a collections Counter.
+    print(stats['file/path'])  # stats=True makes from_x return a collections Counter.
 
 Running a YAPF Pass
 ^^^^^^^^^^^^^^^^^^^
@@ -150,7 +157,7 @@ Example:
     pep8_style['COLUMN_LIMIT'] = 120  # Set the style column limit to 120.
 
     text_result = async2rewrite.from_file('file/path', yapf=pep8_style)  # Run async2rewrite with the YAPF pass.
-    print(text_result)
+    print(text_result['file/path'])
 
 Thanks
 ------
