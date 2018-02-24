@@ -93,9 +93,9 @@ Module
 Converting a File
 ^^^^^^^^^^^^^^^^^
 
-The `from_file()` method returns a dictionary. The dictionary keys are the file names,
-and the values can either be a tuple or a string. If `stats=True` or `include_ast=True`, then
-`from_file()` will return a tuple. The 0th index in the tuple will always be the converted code.
+The ``from_file()`` method returns a dictionary. The dictionary keys are the file names,
+and the values can either be a tuple or a string. If ``stats=True`` or ``include_ast=True``, then
+``from_file()`` will return a tuple. The 0th index in the tuple will always be the converted code.
 
 .. code:: py
 
