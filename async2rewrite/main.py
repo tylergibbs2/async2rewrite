@@ -63,9 +63,11 @@ def get_result(code, **kwargs):
     # and allowing us to return the syntax tree if requested.
     final_ast = ast.parse(unparsed)
 
+    unparsed = unparsed.strip()
+
     if include_ast:
-        return unparsed.strip(), final_ast
-    return unparsed.strip()
+        return unparsed, final_ast
+    return unparsed
 
 
 def process_file(file, **kwargs):
