@@ -60,6 +60,10 @@ class DiscordTransformer(ast.NodeTransformer):
     def visit_Module(self, node):
         self.generic_visit(node)
 
+    def visit_keyword(self, node):
+        if node.arg == "game" and isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Attribute):
+            node = self.game_to_activity(node)
+
         return node
 
     def visit_Expr(self, node):
@@ -144,6 +148,9 @@ class DiscordTransformer(ast.NodeTransformer):
                 return node
 
         self.detect_voice(node)
+
+        if node.attr == "game":
+            node.attr = "activity"
 
         node.attr = node.attr.replace('server', 'guild').replace('Server', 'Guild')
         return node
@@ -232,6 +239,38 @@ class DiscordTransformer(ast.NodeTransformer):
             coro.name = coro.name.replace('on_channel', 'on_guild_channel')
         stats_counter['coro_changes'] += 1
         return coro
+
+    def game_to_activity(self, node):
+        new_keyword = ast.keyword(arg="activity", value=None)
+
+        activity_wrapper = ast.Call(func=ast.Attribute(value=ast.Name(id="discord", ctx=ast.Load()),
+                                                       attr="Activity", ctx=ast.Load()), args=[], keywords=[])
+
+        enum = ast.Attribute(value=ast.Attribute(
+            value=ast.Name(id="discord", ctx=ast.Load()),
+            attr="ActivityType", ctx=ast.Load()),
+            attr=None, ctx=ast.Load())
+
+        game_type = 0
+        keywords = list(node.value.keywords)
+        for kw in node.value.keywords:
+            if kw.arg == "type":
+                keywords.remove(kw)
+                game_type = kw.value.n
+
+        if game_type == 0:
+            node.arg = "activity"
+            return node
+        elif game_type == 1:
+            enum = ast.Attribute(value=ast.Name(id="discord", ctx=ast.Load()), attr="Streaming", ctx=ast.Load())
+            new_keyword.value = ast.Call(func=enum, keywords=keywords, args=[])
+        else:
+            enum.attr = "listening" if game_type == 2 else "watching"
+            activity_wrapper.keywords = [ast.keyword(arg="type", value=enum)]
+            activity_wrapper.keywords += keywords
+            new_keyword.value = activity_wrapper
+
+        return new_keyword
 
     def detect_voice(self, node):
         if getattr(node, 'attr', None) in ["create_ffmpeg_player", "create_ytdl_player",
