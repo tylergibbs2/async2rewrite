@@ -1,9 +1,7 @@
-import collections
 import re
 import os
 
 import astunparse_noparen as ast_unparse
-from yapf import yapf_api
 
 from .transformers import *
 
@@ -19,13 +17,9 @@ def get_result(code, **kwargs):
     and converting to shorthands where available.
     """
 
-    pep8_style = yapf_api.style.CreatePEP8Style()
-    pep8_style['COLUMN_LIMIT'] = 120
-
     stats = kwargs.pop('stats', False)
     include_ast = kwargs.pop('include_ast', False)
     interactive = kwargs.pop('interactive', False)
-    yapf = kwargs.pop('yapf', pep8_style)
 
     def snowflake_repl(match):
         # Cast the snowflake string into an integer
@@ -52,12 +46,6 @@ def get_result(code, **kwargs):
     unparsed = unparsed.replace('ctx.message.guild', 'ctx.guild').replace(
         'ctx.message.author', 'ctx.author')
     unparsed = unparsed.replace('ctx.message.channel', 'ctx.channel').replace('ctx.guild.me', 'ctx.me')
-
-    if isinstance(yapf, collections.MutableMapping):  # Use already created style object
-        unparsed, changes = yapf_api.FormatCode(unparsed, style_config=yapf)
-    elif isinstance(yapf, str):  # Create style from file
-        style = yapf_api.style.CreateStyleFromConfig(yapf)
-        unparsed, changes = yapf_api.FormatCode(unparsed, style_config=style)
 
     # This compiles our new code, ensuring that the syntax is valid
     # and allowing us to return the syntax tree if requested.
