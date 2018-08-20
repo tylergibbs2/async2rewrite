@@ -75,18 +75,6 @@ Example:
 
     python -m async2rewrite file/path --print
 
-Running Interactive Mode
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-async2rewrite provides an option to convert using an interactive mode.
-The interactive mode will prompt your before every change that it makes.
-
-Example:
-
-.. code:: sh
-
-    python -m async2rewrite file/path --interactive
-
 Module
 ~~~~~~
 
@@ -134,28 +122,6 @@ Getting Statistics
 
     stats = async2rewrite.from_file('file/path', stats=True)
     print(stats['file/path'])  # stats=True makes from_x return a collections Counter.
-
-Running a YAPF Pass
-^^^^^^^^^^^^^^^^^^^
-
-The YAPF pass is ran after code conversion, and converts to PEP8 by default.
-The automatic PEP8 formatting can be changed to a different style, or can be
-disabled completely.
-
-More documentation and information can be found on the official repository.
-
-`YAPF Repository`_
-
-.. _YAPF Repository: https://github.com/google/yapf
-
-Example:
-
-.. code:: py
-
-    import async2rewrite
-
-    text_result = async2rewrite.from_file('file/path', yapf=None)  # Disables the automatic YAPF pass.
-    print(text_result['file/path'])
 
 Thanks
 ------
