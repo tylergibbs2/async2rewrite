@@ -13,8 +13,11 @@ tedious work required. async2rewrite will warn upon changes that it cannot make 
 documentation for rewrite when using this tool.
 
 `Migration Documentation`_
+`Commercial 1`_
 
 .. _Migration Documentation: https://discordpy.readthedocs.io/en/rewrite/migrating.html
+
+.. _Commercial 1: https://youtu.be/R-ZLNU-MQL8
 
 Installation
 ------------
@@ -128,3 +131,4 @@ Thanks
 
 * Pantsu for forking and editing `astunparse <https://github.com/nitros12/astunparse>`_ to not insert unnecessary parentheses.
 * Reina for the logo idea
+* Beta for making sweet commercials
