@@ -13,8 +13,11 @@ tedious work required. async2rewrite will warn upon changes that it cannot make 
 documentation for rewrite when using this tool.
 
 `Migration Documentation`_
+`Commercial 1`_
 
 .. _Migration Documentation: https://discordpy.readthedocs.io/en/rewrite/migrating.html
+
+.. _Commercial 1: https://youtu.be/R-ZLNU-MQL8
 
 Installation
 ------------
@@ -75,30 +78,22 @@ Example:
 
     python -m async2rewrite file/path --print
 
-Running Interactive Mode
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-async2rewrite provides an option to convert using an interactive mode.
-The interactive mode will prompt your before every change that it makes.
-
-Example:
-
-.. code:: sh
-
-    python -m async2rewrite file/path --interactive
-
 Module
 ~~~~~~
 
 Converting a File
 ^^^^^^^^^^^^^^^^^
 
+The ``from_file()`` method returns a dictionary. The dictionary keys are the file names,
+and the values can either be a tuple or a string. If ``stats=True`` or ``include_ast=True``, then
+``from_file()`` will return a tuple. The 0th index in the tuple will always be the converted code.
+
 .. code:: py
 
     import async2rewrite
 
     file_result = async2rewrite.from_file('file/path')
-    print(file_result) # file_result contains the converted code.
+    print(file_result['file/path'])  # file_result contains the converted code.
 
 Multiple files can be converted by passing an unpacked list into ``from_file()``.
 
@@ -106,7 +101,10 @@ Example:
 
 .. code:: py
 
-    async2rewrite.from_file('file/path', 'file/path2', 'file/path3', ...)
+    results = async2rewrite.from_file('file/path', 'file/path2', 'file/path3', ...)
+
+    for converted_file in results:  # from_file() returns a dictionary.
+        print(converted_file)  # Print out the result of each file.
 
 Converting from Text
 ^^^^^^^^^^^^^^^^^^^^
@@ -116,7 +114,7 @@ Converting from Text
     import async2rewrite
 
     text_result = async2rewrite.from_text('async def on_command_error(ctx, error): pass')
-    print(text_result) # text_result contains the converted code.
+    print(text_result)  # text_result contains the converted code.
 
 Getting Statistics
 ^^^^^^^^^^^^^^^^^^
@@ -126,10 +124,11 @@ Getting Statistics
     import async2rewrite
 
     stats = async2rewrite.from_file('file/path', stats=True)
-    print(stats) # stats=True makes from_x return a collections Counter.
+    print(stats['file/path'])  # stats=True makes from_x return a collections Counter.
 
 Thanks
 ------
 
 * Pantsu for forking and editing `astunparse <https://github.com/nitros12/astunparse>`_ to not insert unnecessary parentheses.
 * Reina for the logo idea
+* Beta for making sweet commercials

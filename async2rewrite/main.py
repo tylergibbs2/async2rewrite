@@ -19,7 +19,6 @@ def get_result(code, **kwargs):
 
     stats = kwargs.pop('stats', False)
     include_ast = kwargs.pop('include_ast', False)
-    interactive = kwargs.pop('interactive', False)
 
     def snowflake_repl(match):
         # Cast the snowflake string into an integer
@@ -39,7 +38,7 @@ def get_result(code, **kwargs):
 
     # Instantiate a new transformer and start walking through
     # this syntax tree.
-    new_ast = DiscordTransformer(interactive=interactive).generic_visit(expr_ast)
+    new_ast = DiscordTransformer().generic_visit(expr_ast)
 
     unparsed = ast_unparse.unparse(new_ast)
 
@@ -51,9 +50,11 @@ def get_result(code, **kwargs):
     # and allowing us to return the syntax tree if requested.
     final_ast = ast.parse(unparsed)
 
+    unparsed = unparsed.strip()
+
     if include_ast:
-        return unparsed.strip(), final_ast
-    return unparsed.strip()
+        return unparsed, final_ast
+    return unparsed
 
 
 def process_file(file, **kwargs):

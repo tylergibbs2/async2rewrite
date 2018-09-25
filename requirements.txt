@@ -1,2 +1,2 @@
-astunparse-noparen >= 1.5.6
-pygments >= 2.2.0
+astunparse-noparen>=1.5.6
+pygments>=2.2.0

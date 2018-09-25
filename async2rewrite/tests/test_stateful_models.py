@@ -1,8 +1,6 @@
 import async2rewrite
 import pytest
 
-import warnings
-
 
 def test_add_reaction():
     converted_code = async2rewrite.from_text("bot.add_reaction(msg, rxn)")

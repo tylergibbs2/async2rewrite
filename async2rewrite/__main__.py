@@ -10,8 +10,6 @@ parser.add_argument('--suffix', dest='suffix', action='store', type=str, default
                     help='the suffix to use for file names when writing (default: \'.a2r.py\'')
 parser.add_argument('--print', dest='print', action='store_true',
                     help='print the output instead of writing for a file (default: false)')
-parser.add_argument('--interactive', dest='interactive', action='store_true',
-                    help='start an interactive conversion session (default: false)')
 parser.add_argument('--diff', dest='diff', action='store_true',
                     help='create a diff file for every file converted (default: false)')
 parser.set_defaults(print=False, interactive=False, diff=False)

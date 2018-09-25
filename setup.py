@@ -30,6 +30,6 @@ setup(
     download_url='https://github.com/TheTrain2000/async2rewrite/archive/{}.tar.gz'.format(version),
     keywords=['discord', 'discordpy', 'ast'],
     classifiers=[],
-    install_requires=['astunparse-noparen>=1.5.6'],
+    install_requires=['astunparse-noparen>=1.5.6', 'yapf'],
     test_requires=['pytest', 'pytest-cov']
 )
