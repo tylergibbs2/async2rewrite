@@ -1,15 +1,14 @@
-"""Application wrapper for async2rewrite."""
-import async2rewrite
 import tkinter as tk
 from tkinter import messagebox, filedialog
-from pathlib import Path
 import webbrowser
 from pygments import lex
 from pygments.lexers.python import Python3Lexer
+import async2rewrite
 
 
 def get_window_info(window, *, main_menu=False, custom_wh=None):
-    """Fetches the center of the screen (according to x and y)."""
+    """Fetches the center of the screen (according to x and y).
+    """
     w = 850
     h = 350
     ws = window.winfo_screenwidth()
@@ -24,13 +23,14 @@ def get_window_info(window, *, main_menu=False, custom_wh=None):
 
 
 class Application(tk.Tk):
-    """Base of the application."""
+    """Base of the application.
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # Initial window features
         self.geometry(get_window_info(self, main_menu=True))
-        self.iconbitmap('a2r.ico')
+        self.iconbitmap('./a2r.ico')
 
         # Wrapper for frames
         container = tk.Frame(self)
@@ -54,7 +54,8 @@ class Application(tk.Tk):
 
 
 class MainMenu(tk.Frame):
-    """Main menu of the application."""
+    """Main menu of the application.
+    """
     def __init__(self, parent, controller):
         super().__init__(parent)
 
@@ -79,42 +80,42 @@ class MainMenu(tk.Frame):
         notices = tk.Button(self, text="Credits", command=lambda: Notices(self.parent))
         notices.grid(row=4, column=1, sticky="we")
 
+        close = tk.Button(self, text='Exit', command=exit)
+        close.grid(row=5, column=1, sticky="we")
+
         # Configure grid geometry
         self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(1, weight=1)
 
     def file(self):
-        """Converts a file from async to rewrite."""
-        name = filedialog.askopenfilename(initialdir=".", title="Select a file",
-                                          filetypes=(("Python Files", "*.py"),))  # Asks for original file
-        save = filedialog.asksaveasfilename(initialdir=".", title="Save file as",
-                                            filetypes=(("Python Files", "*.py"),))  # Asks where to save the file
+        """Converts a file from async to rewrite.
+        """
+        name = tk.filedialog.askopenfilename(initialdir=".", title="Select a file",
+                                             filetypes=(("Python Files", "*.py"),))  # Asks for original file
+
+        save = tk.filedialog.asksaveasfilename(initialdir=".", title="Save file as",
+                                               filetypes=(("Python Files", "*.py"),))  # Asks where to save the file
 
         try:
             file_result = async2rewrite.from_file(name)  # Converts code from original file to rewrite
+
             with open(save, 'w') as f:
-                f.write(file_result.replace('\t', '    '))
+                f.write(file_result[name].replace('\t', '    '))
         except Exception as e:
 
             # Check if it's to do with file/directory not being found
             if 'No such file or directory' in str(e):
-                messagebox.showerror('File Not Found', 'You did not choose a file to convert/save the conversion.')
+                tk.messagebox.showerror('File Not Found', 'You did not choose a file to convert/save the conversion.')
             else:
-                messagebox.showerror(type(e).__name__, str(e).replace('<unknown>', Path(name).name))
+                tk.messagebox.showerror(type(e).__name__, str(e).replace('<unknown>', name))
         else:
-            save = Path(save).parent
-
-            # Copy save url to clipboard
-            self.controller.clipboard_clear()
-            self.controller.clipboard_append(save)
-            self.controller.update()
-
-            messagebox.showinfo('Success!', 'The conversion was successful. Your converted file is in "{}"'.format(save)
-                                            + '(Copied to clipboard).')
+            tk.messagebox.showinfo('Success!', 'The conversion was successful. '
+                                               'Your converted file is in "{}".'.format(save))
 
 
 class Notices(tk.Toplevel):
-    """Shows relevant notices."""
+    """Shows relevant notices.
+    """
 
     GITHUB = 'https://github.com/TheTrain2000/async2rewrite'
 
@@ -132,6 +133,7 @@ class Notices(tk.Toplevel):
                   "async2rewrite will warn upon changes that it cannot make itself.\n",
                   "Make sure to read the migration documentation for rewrite when using this tool.\n\n",
                   "Library made by: TheTrain2000 (Tyler) with the aid of nitros12 (Pantsu).\n",
+                  "Commercial made by: tildebeta (Ava).\n"
                   "Logo idea by: ReinaSakuraba.\n",
                   "Application by: NCPlayz (Nadir)."]
 
@@ -141,6 +143,10 @@ class Notices(tk.Toplevel):
 
         # Menu buttons
 
+        commercial = tk.Button(self, text="See Commercial",
+                               command=lambda: webbrowser.open("https://youtu.be/R-ZLNU-MQL8"))
+        commercial.pack()
+
         github = tk.Button(self, text='Open Github', command=lambda: webbrowser.open(self.GITHUB))
         github.pack()
 
@@ -149,7 +155,8 @@ class Notices(tk.Toplevel):
 
 
 class Snippet(tk.Toplevel):
-    """Conversion of snippet of codes."""
+    """Conversion of snippet of codes.
+    """
 
     def __init__(self, master):
         super().__init__(master)
@@ -172,7 +179,8 @@ class Snippet(tk.Toplevel):
         self.close_btn.grid(row=2, column=1, sticky="we")
 
     def convert(self):
-        """Converts the input text to rewrite."""
+        """Converts the input text to rewrite.
+        """
         try:
             conversion = async2rewrite.from_text(self.input_text.get(1.0, tk.END).replace('\t', '    '))
         except Exception as e:
@@ -186,7 +194,8 @@ class Snippet(tk.Toplevel):
 
 
 class SyntaxText(tk.Text):
-    """Custom Text with syntax highlighting."""
+    """Custom Text with syntax highlighting.
+    """
     def __init__(self, master):
         super().__init__(master)
 
@@ -210,7 +219,8 @@ class SyntaxText(tk.Text):
         self.bind('<KeyRelease>', self.highlight)
 
     def highlight(self, event=None):
-        """Does syntax highlighting."""
+        """Does syntax highlighting.
+        """
         data = self.get("1.0", "end-1c")
         if data != '':
             # Add tags

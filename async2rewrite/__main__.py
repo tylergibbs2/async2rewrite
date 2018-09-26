@@ -1,3 +1,5 @@
+import os
+import platform
 import argparse
 import difflib
 
@@ -5,16 +7,26 @@ from async2rewrite.main import from_file
 
 parser = argparse.ArgumentParser(description='Automatically convert discord.py async branch code to rewrite.')
 
-parser.add_argument('paths', type=str, nargs='+')
+parser.add_argument('paths', type=str, nargs='*')
 parser.add_argument('--suffix', dest='suffix', action='store', type=str, default='.a2r.py',
                     help='the suffix to use for file names when writing (default: \'.a2r.py\'')
 parser.add_argument('--print', dest='print', action='store_true',
                     help='print the output instead of writing for a file (default: false)')
 parser.add_argument('--diff', dest='diff', action='store_true',
                     help='create a diff file for every file converted (default: false)')
-parser.set_defaults(print=False, interactive=False, diff=False)
+parser.add_argument('--gui', dest='gui', action='store_true',
+                    help='launch the GUI extension of async2rewrite (default: true)')
+parser.set_defaults(print=False, interactive=False, diff=False, gui=True)
 
 results = parser.parse_args()
+
+if not (results.print or results.diff):
+    if platform.system() == 'Linux':
+        os.system('cd ./application && nohup ./launcher.py')
+    elif platform.system() == 'Windows':
+        os.system('cd ./application & start pythonw ./launcher.py')
+else:
+    results.gui = False
 
 converted = from_file(*results.paths, interactive=results.interactive)
 d = difflib.Differ()

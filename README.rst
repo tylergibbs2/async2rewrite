@@ -78,6 +78,14 @@ Example:
 
     python -m async2rewrite file/path --print
 
+Using the GUI Extension
+^^^^^^^^^^^^^^^^^^^^^^^
+If you would like to use the async2rewrite GUI extension, no flags are required.
+
+.. code:: sh
+
+    python -m async2rewrite
+
 Module
 ~~~~~~
 
