@@ -1,9 +1,13 @@
+import os
 import tkinter as tk
 from tkinter import messagebox, filedialog
 import webbrowser
 from pygments import lex
 from pygments.lexers.python import Python3Lexer
 import async2rewrite
+
+
+PATH = os.path.dirname(os.path.realpath(__file__))
 
 
 def get_window_info(window, *, main_menu=False, custom_wh=None):
@@ -30,7 +34,7 @@ class Application(tk.Tk):
 
         # Initial window features
         self.geometry(get_window_info(self, main_menu=True))
-        self.iconbitmap('./a2r.ico')
+        self.iconbitmap('{}/a2r.ico'.format(PATH))
 
         # Wrapper for frames
         container = tk.Frame(self)
@@ -64,7 +68,7 @@ class MainMenu(tk.Frame):
         self.controller = controller
 
         # Label
-        a2r_img = tk.PhotoImage(file='../logo.png')
+        a2r_img = tk.PhotoImage(file='{}/logo.png'.format(os.path.dirname(PATH)))
         label = tk.Label(self, image=a2r_img)
         label.image = a2r_img
         label.grid(row=1, column=1, sticky="we")
@@ -125,7 +129,7 @@ class Notices(tk.Toplevel):
         # Initialize window features
         self.title("Credits")
         self.geometry(get_window_info(master))
-        self.iconbitmap('a2r.ico')
+        self.iconbitmap('{}/a2r.ico'.format(PATH))
 
         # Make list of phrases for notice
         notice = ["async2rewrite does not complete 100% of the necessary conversions.\n",
@@ -164,7 +168,7 @@ class Snippet(tk.Toplevel):
         # Initialize window features
         self.title("Convert a Snippet")
         self.geometry(get_window_info(master, custom_wh=[752, 440]))
-        self.iconbitmap('a2r.ico')
+        self.iconbitmap('{}/a2r.ico'.format(PATH))
 
         # Custom text with syntax highlighting
         self.input_text = SyntaxText(self)

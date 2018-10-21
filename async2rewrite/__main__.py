@@ -21,10 +21,8 @@ parser.set_defaults(print=False, interactive=False, diff=False, gui=True)
 results = parser.parse_args()
 
 if not (results.print or results.diff):
-    if platform.system() == 'Linux':
-        os.system('cd ./application && nohup ./launcher.py')
-    elif platform.system() == 'Windows':
-        os.system('cd ./application & start pythonw ./launcher.py')
+    from application.launcher import setup
+    setup()
 else:
     results.gui = False
 
