@@ -1,3 +1,8 @@
+DEPRECATED
+----------
+It was fun while it lasted, everyone. async2rewrite will remain here as an archived repo. It will still be on pip (for
+the time being), and it will still work for converting some of async to rewrite. This project will receive no more updates.
+
 .. image:: https://github.com/TheTrain2000/async2rewrite/blob/master/logo.png?raw=true
     :align: center
 
